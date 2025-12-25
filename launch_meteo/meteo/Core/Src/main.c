@@ -25,7 +25,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "text_function.h"
+#include "stm32f3xx_hal.h"
+#include "ILI9341_STM32_Driver.h"
+#include "ILI9341_GFX.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,7 +49,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+int16_t temperature = 253;
+int16_t pressure = 101;
+char string_buf[7];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -93,6 +98,27 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+  HAL_Delay(10);
+  ILI9341_Init();
+  HAL_Delay(50);
+
+  ILI9341_FillScreen(BLACK); //fill whole screen with black color
+
+
+  //test printout
+  ILI9341_DrawRectangle(0, 0, 320, 30, BLUE);
+  ILI9341_DrawText("WEATHER STATION", FONT4, 60, 8, WHITE, BLUE);
+
+    ILI9341_DrawHollowRectangleCoord(10, 40, 310, 75, WHITE);
+  	ILI9341_DrawText("Temperature:        *C", FONT4, 50, 50, WHITE, BLACK);
+  	digit_to_ascii_XX_X(temperature, string_buf);
+  	ILI9341_DrawText(string_buf, FONT4, 190, 50, WHITE, BLACK);
+
+  	ILI9341_DrawHollowRectangleCoord(10, 85, 310, 120, WHITE);
+  	ILI9341_DrawText("Pressure:           kPa", FONT4, 50, 95, WHITE, BLACK);
+  	digit3_to_ascii(pressure, string_buf);
+  	ILI9341_DrawText(string_buf, FONT4, 190, 95, WHITE, BLACK);
+
 
   /* USER CODE END 2 */
 
@@ -103,6 +129,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
   }
   /* USER CODE END 3 */
 }
