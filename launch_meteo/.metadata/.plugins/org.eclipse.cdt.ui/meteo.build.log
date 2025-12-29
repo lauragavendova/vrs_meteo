@@ -1,10 +1,10 @@
-11:26:08 **** Incremental Build of configuration Debug for project meteo ****
+19:06:06 **** Incremental Build of configuration Debug for project meteo ****
 make -j12 all 
 arm-none-eabi-size  meteo.elf 
    text	   data	    bss	    dec	    hex	filename
-  23872	     20	   2100	  25992	   6588	meteo.elf
+  23944	     20	   2108	  26072	   65d8	meteo.elf
 Finished building: default.size.stdout
  
 
-11:26:08 Build Finished. 0 errors, 0 warnings. (took 318ms)
+19:06:07 Build Finished. 0 errors, 0 warnings. (took 382ms)
 

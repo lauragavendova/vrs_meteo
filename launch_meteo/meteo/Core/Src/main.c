@@ -52,6 +52,8 @@
 /* USER CODE BEGIN PV */
 int16_t temperature = 853;
 int16_t pressure = 111;
+int8_t screen_index = 0;
+int8_t screen_status = 0;
 char string_buf[7];
 /* USER CODE END PV */
 
@@ -131,17 +133,17 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if (HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == 0) {
+	  if (screen_status) {
 		  pressure++;
 		  digit3_to_ascii(pressure, string_buf);
 		  ILI9341_DrawText(string_buf, FONT4, 190, 95, WHITE, BLACK);
-
+		  screen_status = 0;
 	  }
 
 	  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(1000);
+	  HAL_Delay(500);
 	  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-	  HAL_Delay(1000);
+	  HAL_Delay(500);
 
   }
   /* USER CODE END 3 */

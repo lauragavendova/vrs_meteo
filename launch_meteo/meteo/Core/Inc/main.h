@@ -80,6 +80,10 @@ void Error_Handler(void);
 #define VCP_RX_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
+/*int16_t temperature;
+int16_t pressure;
+extern int8_t screen_index;*/
+extern int8_t screen_status;
 
 /* USER CODE END Private defines */
 
