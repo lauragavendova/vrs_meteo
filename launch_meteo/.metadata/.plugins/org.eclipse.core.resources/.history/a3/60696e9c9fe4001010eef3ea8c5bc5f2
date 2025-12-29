@@ -131,17 +131,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if (HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == 0) {
-		  pressure++;
-		  digit3_to_ascii(pressure, string_buf);
-		  ILI9341_DrawText(string_buf, FONT4, 190, 95, WHITE, BLACK);
-
-	  }
-
-	  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(1000);
-	  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-	  HAL_Delay(1000);
+	  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, HIGH);
 
   }
   /* USER CODE END 3 */
