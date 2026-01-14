@@ -60,8 +60,8 @@ all: main-build
 main-build: meteo.elf secondary-outputs
 
 # Tool invocations
-meteo.elf meteo.map: $(OBJS) $(USER_OBJS) C:\Git\STM_cubeIDE\projects_vrs\vrs_meteo\launch_meteo\meteo\STM32F303K8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "meteo.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Git\STM_cubeIDE\projects_vrs\vrs_meteo\launch_meteo\meteo\STM32F303K8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="meteo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+meteo.elf meteo.map: $(OBJS) $(USER_OBJS) C:\Users\laura\Documents\GitHub\vrs_meteo\launch_meteo\meteo\STM32F303K8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "meteo.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\laura\Documents\GitHub\vrs_meteo\launch_meteo\meteo\STM32F303K8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="meteo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
