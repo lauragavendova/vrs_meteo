@@ -1,6 +1,8 @@
 #include "ILI9341_STM32_Driver.h"
 #include "ILI9341_GFX.h"
 
+#include <string.h>
+
 /* imprecise small delay */
 __STATIC_INLINE void DelayUs(volatile uint32_t us)
 {
@@ -269,10 +271,9 @@ void ILI9341_DrawChar_Scaled(char ch, const uint8_t font[], uint16_t X, uint16_t
     uint8_t fHeight = font[2];
     uint8_t fBPL = font[3];
 
-    uint8_t *tempChar = (uint8_t*)&font[((ch - 0x20) * fOffset) + 4];
-
 //    ILI9341_DrawRectangle(X, Y, fWidth * size, fHeight * size, bgcolor);
 
+    uint8_t *tempChar = (uint8_t*)&font[((ch - 0x20) * fOffset) + 4];
     uint8_t realWidth = tempChar[0];
     ILI9341_DrawRectangle(X, Y, (realWidth + 1) * size, fHeight * size, bgcolor);
 
@@ -308,4 +309,44 @@ void ILI9341_DrawText_Scaled(char* str, const uint8_t font[], uint16_t X, uint16
         X += (realWidth + 1) * size;
         str++;
     }
+}
+
+void DrawTimeCentered(char* mainTime, char* seconds, const uint8_t font[])
+{
+    uint8_t large = 5;
+    uint8_t small = 2;
+    uint8_t fOffset = font[0];
+    uint8_t fHeight = font[2]-4;
+
+    uint16_t widthLarge = 0;
+    uint16_t widthSmall = 0;
+
+    // sirka hlavneho casu
+    for (int i = 0; mainTime[i] != '\0'; i++) {
+        uint32_t charIndex = ((mainTime[i] - 0x20) * fOffset) + 4;
+        uint8_t charWidth = font[charIndex];
+
+        widthLarge += (charWidth+1) * large;
+    }
+
+    // sirka sekund
+    for (int i = 0; seconds[i] != '\0'; i++) {
+        uint32_t charIndex = ((seconds[i] - 0x20) * fOffset) + 4;
+        uint8_t charWidth = font[charIndex];
+
+        widthSmall += (charWidth + 1) * small;
+    }
+
+    // stred
+    uint16_t totalWidth = widthLarge + widthSmall;
+    uint16_t xStart = (320 - totalWidth) / 2;
+    uint16_t yStart = (240 - (fHeight * large)) / 2;
+
+    // hlavny cas
+    ILI9341_DrawText_Scaled(mainTime, font, xStart, yStart, BLACK, WHITE, large);
+
+    // sekundy
+    uint16_t xSmall = xStart + widthLarge;
+    uint16_t ySmall = yStart + (fHeight * large) - (fHeight * small);
+    ILI9341_DrawText_Scaled(seconds, font, xSmall, ySmall, BLACK, WHITE, small);
 }

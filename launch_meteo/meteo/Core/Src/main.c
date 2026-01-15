@@ -108,10 +108,9 @@ int main(void)
   HAL_Delay(50);
 
   ILI9341_SetRotation(3);
-  ILI9341_FillScreen(BLACK); //fill whole screen with black color
+  ILI9341_FillScreen(WHITE);
 
-  ILI9341_DrawChar_Scaled('3', FONT4, 160, 100, WHITE, BLACK, 5);
-  ILI9341_DrawText_Scaled("10", FONT4, 10, 10, BLACK, WHITE, 5);
+  DrawTimeCentered("10:00", ":00", FONT4);
 
   //test printout
 //  ILI9341_DrawRectangle(0, 0, 320, 30, BLUE);
