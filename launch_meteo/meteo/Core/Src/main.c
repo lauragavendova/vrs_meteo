@@ -110,20 +110,22 @@ int main(void)
   ILI9341_SetRotation(3);
   ILI9341_FillScreen(BLACK); //fill whole screen with black color
 
+  ILI9341_DrawChar_Scaled('3', FONT4, 160, 100, WHITE, BLACK, 5);
+  ILI9341_DrawText_Scaled("10", FONT4, 10, 10, BLACK, WHITE, 5);
 
   //test printout
-  ILI9341_DrawRectangle(0, 0, 320, 30, BLUE);
-  ILI9341_DrawText("WEATHER STATION", FONT4, 60, 8, WHITE, BLUE);
-
-    ILI9341_DrawHollowRectangleCoord(10, 40, 310, 75, WHITE);
-  	ILI9341_DrawText("Temperature:        *C", FONT4, 50, 50, WHITE, BLACK);
-  	digit_to_ascii_XX_X(temperature, string_buf);
-  	ILI9341_DrawText(string_buf, FONT4, 190, 50, WHITE, BLACK);
-
-  	ILI9341_DrawHollowRectangleCoord(10, 85, 310, 120, WHITE);
-  	ILI9341_DrawText("Pressure:           kPa", FONT4, 50, 95, WHITE, BLACK);
-  	digit3_to_ascii(pressure, string_buf);
-  	ILI9341_DrawText(string_buf, FONT4, 190, 95, WHITE, BLACK);
+//  ILI9341_DrawRectangle(0, 0, 320, 30, BLUE);
+//  ILI9341_DrawText("WEATHER STATION", FONT4, 60, 8, WHITE, BLUE);
+//
+//    ILI9341_DrawHollowRectangleCoord(10, 40, 310, 75, WHITE);
+//  	ILI9341_DrawText("Temperature:        *C", FONT4, 50, 50, WHITE, BLACK);
+//  	digit_to_ascii_XX_X(temperature, string_buf);
+//  	ILI9341_DrawText(string_buf, FONT4, 190, 50, WHITE, BLACK);
+//
+//  	ILI9341_DrawHollowRectangleCoord(10, 85, 310, 120, WHITE);
+//  	ILI9341_DrawText("Pressure:           kPa", FONT4, 50, 95, WHITE, BLACK);
+//  	digit3_to_ascii(pressure, string_buf);
+//  	ILI9341_DrawText(string_buf, FONT4, 190, 95, WHITE, BLACK);
 
 
   /* USER CODE END 2 */

@@ -259,3 +259,53 @@ void ILI9341_DrawImage(const uint8_t* image, uint8_t orientation)
 		DelayUs(1);
 	}
 }
+
+void ILI9341_DrawChar_Scaled(char ch, const uint8_t font[], uint16_t X, uint16_t Y, uint16_t color, uint16_t bgcolor, uint8_t size)
+{
+    if ((ch < 31) || (ch > 127)) return;
+
+    uint8_t fOffset = font[0];
+    uint8_t fWidth = font[1];
+    uint8_t fHeight = font[2];
+    uint8_t fBPL = font[3];
+
+    uint8_t *tempChar = (uint8_t*)&font[((ch - 0x20) * fOffset) + 4];
+
+//    ILI9341_DrawRectangle(X, Y, fWidth * size, fHeight * size, bgcolor);
+
+    uint8_t realWidth = tempChar[0];
+    ILI9341_DrawRectangle(X, Y, (realWidth + 1) * size, fHeight * size, bgcolor);
+
+    for (int j=0; j < fHeight; j++)
+    {
+        for (int i=0; i < fWidth; i++)
+        {
+            uint8_t z = tempChar[fBPL * i + ((j & 0xF8) >> 3) + 1];
+            uint8_t b = 1 << (j & 0x07);
+
+            if ((z & b) != 0x00)
+            {
+                if(size <= 1)
+                    ILI9341_DrawPixel(X + i, Y + j, color);
+                else
+                    ILI9341_DrawRectangle(X + (i * size), Y + (j * size), size, size, color);
+            }
+        }
+    }
+}
+
+void ILI9341_DrawText_Scaled(char* str, const uint8_t font[], uint16_t X, uint16_t Y, uint16_t color, uint16_t bgcolor, uint16_t size)
+{
+	uint8_t fOffset = font[0];
+
+    while (*str)
+    {
+        ILI9341_DrawChar_Scaled(*str, font, X, Y, color, bgcolor, size);
+
+        uint8_t *tempChar = (uint8_t*)&font[((*str - 0x20) * fOffset) + 4];
+        uint8_t realWidth = tempChar[0];
+
+        X += (realWidth + 1) * size;
+        str++;
+    }
+}

@@ -6,3 +6,5 @@
 ../Core/Src/ILI9341_GFX.c:170:6:ILI9341_DrawChar	6
 ../Core/Src/ILI9341_GFX.c:201:6:ILI9341_DrawText	3
 ../Core/Src/ILI9341_GFX.c:229:6:ILI9341_DrawImage	6
+../Core/Src/ILI9341_GFX.c:263:6:ILI9341_DrawChar_Scaled	7
+../Core/Src/ILI9341_GFX.c:297:6:ILI9341_DrawText_Scaled	2
