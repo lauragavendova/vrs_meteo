@@ -58,7 +58,7 @@ void ILI9341_SetAddress(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 	buffer[2] = x2 >> 8;
 	buffer[3] = x2;
 
-	ILI9341_WriteCommand(0x2A);
+	ILI9341_WriteCommand(0x2B); //povodne 0x2A
 	ILI9341_WriteBuffer(buffer, sizeof(buffer));
 
 	buffer[0] = y1 >> 8;
@@ -66,7 +66,7 @@ void ILI9341_SetAddress(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 	buffer[2] = y2 >> 8;
 	buffer[3] = y2;
 
-	ILI9341_WriteCommand(0x2B);
+	ILI9341_WriteCommand(0x2A); //povodne 0x2B
 	ILI9341_WriteBuffer(buffer, sizeof(buffer));
 
 	ILI9341_WriteCommand(0x2C);
@@ -238,7 +238,7 @@ void ILI9341_SetRotation(uint8_t rotation)
 		LCD_HEIGHT = 320;
 		break;
 	case SCREEN_HORIZONTAL_1:
-		ILI9341_WriteData(0x20);
+		ILI9341_WriteData(0x60); //povodne 0x20
 		LCD_WIDTH  = 320;
 		LCD_HEIGHT = 240;
 		break;
@@ -248,7 +248,7 @@ void ILI9341_SetRotation(uint8_t rotation)
 		LCD_HEIGHT = 320;
 		break;
 	case SCREEN_HORIZONTAL_2:
-		ILI9341_WriteData(0x40|0x80|0x20);
+		ILI9341_WriteData(0x80|0x20); //povodne 0x40|0x80|0x20
 		LCD_WIDTH  = 320;
 		LCD_HEIGHT = 240;
 		break;
@@ -318,10 +318,10 @@ void ILI9341_DrawPixel(uint16_t x,uint16_t y,uint16_t color)
 	uint8_t bufferY[4] = {y>>8, y, (y+1)>>8, (y+1)};
 	uint8_t bufferC[2] = {color>>8, color};
 
-	ILI9341_WriteCommand(0x2A);						//ADDRESS
+	ILI9341_WriteCommand(0x2B);	  //povodne 0x2A	//ADDRESS
 	ILI9341_WriteBuffer(bufferX, sizeof(bufferX));	//XDATA
 
-	ILI9341_WriteCommand(0x2B);						//ADDRESS
+	ILI9341_WriteCommand(0x2A);	  //povodne 0x2B	//ADDRESS
 	ILI9341_WriteBuffer(bufferY, sizeof(bufferY));	//YDATA
 
 	ILI9341_WriteCommand(0x2C);						//ADDRESS

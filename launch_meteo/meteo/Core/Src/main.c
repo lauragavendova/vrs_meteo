@@ -107,6 +107,7 @@ int main(void)
   ILI9341_Init();
   HAL_Delay(50);
 
+  ILI9341_SetRotation(3);
   ILI9341_FillScreen(BLACK); //fill whole screen with black color
 
 
