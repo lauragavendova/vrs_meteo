@@ -233,22 +233,22 @@ void ILI9341_SetRotation(uint8_t rotation)
 	switch(rotation)
 	{
 	case SCREEN_VERTICAL_1:
-		ILI9341_WriteData(0x40|0x08);
+		ILI9341_WriteData(0x40);
 		LCD_WIDTH = 240;
 		LCD_HEIGHT = 320;
 		break;
 	case SCREEN_HORIZONTAL_1:
-		ILI9341_WriteData(0x20|0x08);
+		ILI9341_WriteData(0x20);
 		LCD_WIDTH  = 320;
 		LCD_HEIGHT = 240;
 		break;
 	case SCREEN_VERTICAL_2:
-		ILI9341_WriteData(0x80|0x08);
+		ILI9341_WriteData(0x80);
 		LCD_WIDTH  = 240;
 		LCD_HEIGHT = 320;
 		break;
 	case SCREEN_HORIZONTAL_2:
-		ILI9341_WriteData(0x40|0x80|0x20|0x08);
+		ILI9341_WriteData(0x40|0x80|0x20);
 		LCD_WIDTH  = 320;
 		LCD_HEIGHT = 240;
 		break;

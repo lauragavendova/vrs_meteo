@@ -102,6 +102,7 @@ int main(void)
   MX_SPI1_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
+  ILI9341_Reset();
   HAL_Delay(10);
   ILI9341_Init();
   HAL_Delay(50);
