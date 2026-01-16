@@ -55,6 +55,11 @@ int16_t pressure = 111;
 int8_t screen_index = 0;
 int8_t screen_status = 0;
 char string_buf[7];
+
+uint8_t screen = 0;
+uint32_t change = 0;
+volatile uint8_t pause = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,6 +106,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI1_Init();
   MX_I2C1_Init();
+
   /* USER CODE BEGIN 2 */
   ILI9341_Reset();
   HAL_Delay(10);
@@ -108,9 +114,36 @@ int main(void)
   HAL_Delay(50);
 
   ILI9341_SetRotation(3);
-  ILI9341_FillScreen(WHITE);
+  ILI9341_FillScreen(BGCOLOR);
 
-  DrawTimeCentered("10:00", ":00", FONT4);
+  DrawDataCentered_WithOffset("Vitajte!", FONT4, 2, 80, FCOLOR);
+  DrawDataCentered_WithOffset("Autori: Bodor, Gavendova,", FONT4, 1, 130, FCOLOR);
+  DrawDataCentered_WithOffset("Kapina, Krajmer", FONT4, 1, 130 + FONT4[2] + 1, FCOLOR);
+  DrawDataCentered_WithOffset("*pre zastavenie obrazovky stlacte tlacidlo", FONT4, 1, 240 - FONT4[2] - 1, RED);
+  HAL_Delay(3000);
+
+    ILI9341_FillScreen(BGCOLOR);
+    char* big[4] = {"10:00", "22.1", "50", "1013"};
+    char* small[4] = {":00", "C", "%", "hPa"};
+
+
+  while (1) {
+      if (!pause && (HAL_GetTick() - change >= 5000)) {
+          screen++;
+          if (screen > 4) screen = 0;
+
+          change = HAL_GetTick();
+
+          ILI9341_FillScreen(BGCOLOR);
+          switch (screen) {
+          	  case 0: DrawSummary(big, small, FONT4); break;
+              case 1: DrawDataCentered("10:00", ":00", FONT4, 5, 3); break;
+              case 2: DrawDataCentered("22.1", "C", FONT4, 5, 3);    break;
+              case 3: DrawDataCentered("50", "%", FONT4, 5, 3);      break;
+              case 4: DrawDataCentered("1013", "hPa", FONT4, 5, 3);  break;
+          }
+      }
+  }
 
   //test printout
 //  ILI9341_DrawRectangle(0, 0, 320, 30, BLUE);
@@ -147,8 +180,6 @@ int main(void)
 	  //HAL_Delay(500);
 	  //HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 	  //HAL_Delay(500);
-	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3);
-	  HAL_Delay(500);
 
   }
   /* USER CODE END 3 */
@@ -198,7 +229,14 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if (GPIO_Pin == BTN_Pin)
+  {
+	  pause = !pause;
+    HAL_GPIO_TogglePin(GPIOB, LD3_Pin);
+  }
+}
 /* USER CODE END 4 */
 
 /**

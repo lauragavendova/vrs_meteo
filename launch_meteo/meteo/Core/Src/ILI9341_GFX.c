@@ -311,42 +311,112 @@ void ILI9341_DrawText_Scaled(char* str, const uint8_t font[], uint16_t X, uint16
     }
 }
 
-void DrawTimeCentered(char* mainTime, char* seconds, const uint8_t font[])
+void DrawDataCentered(char* big, char* smaller, const uint8_t font[], uint8_t fontlarge, uint8_t fontsmall)
 {
-    uint8_t large = 5;
-    uint8_t small = 2;
     uint8_t fOffset = font[0];
     uint8_t fHeight = font[2]-4;
 
     uint16_t widthLarge = 0;
     uint16_t widthSmall = 0;
 
-    // sirka hlavneho casu
-    for (int i = 0; mainTime[i] != '\0'; i++) {
-        uint32_t charIndex = ((mainTime[i] - 0x20) * fOffset) + 4;
+    // sirka big
+    for (int i = 0; big[i] != '\0'; i++) {
+        uint32_t charIndex = ((big[i] - 0x20) * fOffset) + 4;
         uint8_t charWidth = font[charIndex];
 
-        widthLarge += (charWidth+1) * large;
+        widthLarge += (charWidth+1) * fontlarge;
     }
 
-    // sirka sekund
-    for (int i = 0; seconds[i] != '\0'; i++) {
-        uint32_t charIndex = ((seconds[i] - 0x20) * fOffset) + 4;
+    // sirka smaller
+    for (int i = 0; smaller[i] != '\0'; i++) {
+        uint32_t charIndex = ((smaller[i] - 0x20) * fOffset) + 4;
         uint8_t charWidth = font[charIndex];
 
-        widthSmall += (charWidth + 1) * small;
+        widthSmall += (charWidth + 1) * fontsmall;
     }
 
     // stred
     uint16_t totalWidth = widthLarge + widthSmall;
     uint16_t xStart = (320 - totalWidth) / 2;
-    uint16_t yStart = (240 - (fHeight * large)) / 2;
+    uint16_t yStart = (240 - (fHeight * fontlarge)) / 2;
 
-    // hlavny cas
-    ILI9341_DrawText_Scaled(mainTime, font, xStart, yStart, BLACK, WHITE, large);
+    // big
+    ILI9341_DrawText_Scaled(big, font, xStart, yStart, FCOLOR, BGCOLOR, fontlarge);
 
-    // sekundy
+    // smaller
     uint16_t xSmall = xStart + widthLarge;
-    uint16_t ySmall = yStart + (fHeight * large) - (fHeight * small);
-    ILI9341_DrawText_Scaled(seconds, font, xSmall, ySmall, BLACK, WHITE, small);
+    uint16_t ySmall = yStart + (fHeight * fontlarge) - (fHeight * fontsmall);
+    ILI9341_DrawText_Scaled(smaller, font, xSmall, ySmall, FCOLOR, BGCOLOR, fontsmall);
+}
+
+void DrawDataCentered_WithOffset(char* big, const uint8_t font[], uint8_t fontlarge, uint8_t offset, uint16_t color)
+{
+    uint8_t fOffset = font[0];
+
+    uint16_t width = 0;
+
+    for (int i = 0; big[i] != '\0'; i++) {
+        uint32_t charIndex = ((big[i] - 0x20) * fOffset) + 4;
+        uint8_t charWidth = font[charIndex];
+
+        width += (charWidth+1) * fontlarge;
+    }
+
+    // stred
+    uint16_t xStart = (320 - width) / 2;
+    uint16_t yStart = offset ;
+
+
+    ILI9341_DrawText_Scaled(big, font, xStart, yStart, color, BGCOLOR, fontlarge);
+}
+
+
+void DrawDataInBox(char* big, char* smaller, const uint8_t font[], uint8_t fontlarge, uint8_t fontsmall,
+                   uint16_t boxX, uint16_t boxY, uint16_t boxW, uint16_t boxH)
+{
+    uint8_t fOffset = font[0];
+    uint8_t fHeight = font[2] - 4;
+
+    uint16_t widthLarge = 0;
+    uint16_t widthSmall = 0;
+
+    for (int i = 0; big[i] != '\0'; i++) {
+        uint32_t charIndex = ((big[i] - 0x20) * fOffset) + 4;
+        widthLarge += (font[charIndex] + 1) * fontlarge;
+    }
+
+
+    for (int i = 0; smaller[i] != '\0'; i++) {
+        uint32_t charIndex = ((smaller[i] - 0x20) * fOffset) + 4;
+        widthSmall += (font[charIndex] + 1) * fontsmall;
+    }
+
+    uint16_t totalWidth = widthLarge + widthSmall;
+
+
+    uint16_t xStart = boxX + (boxW - totalWidth) / 2;
+    uint16_t yStart = boxY + (boxH - (fHeight * fontlarge)) / 2;
+
+
+    ILI9341_DrawText_Scaled(big, font, xStart, yStart, FCOLOR, BGCOLOR, fontlarge);
+
+    uint16_t xSmall = xStart + widthLarge;
+    uint16_t ySmall = yStart + (fHeight * fontlarge) - (fHeight * fontsmall);
+    ILI9341_DrawText_Scaled(smaller, font, xSmall, ySmall, FCOLOR, BGCOLOR, fontsmall);
+}
+
+void DrawSummary(char* big[4], char* small[4], const uint8_t font[])
+{
+    uint16_t qW = 160; // 320/2
+    uint16_t qH = 120; // 240/2
+
+    uint16_t xCoords[4] = {0, 160, 0, 160};
+    uint16_t yCoords[4] = {0, 0, 120, 120};
+
+    ILI9341_DrawHLine(0, 120, 320, FCOLOR);
+    ILI9341_DrawVLine(160, 0, 240, FCOLOR);
+        
+    for (int i = 0; i < 4; i++) {
+        DrawDataInBox(big[i], small[i], font, 2, 1, xCoords[i], yCoords[i], qW, qH);
+    }
 }
