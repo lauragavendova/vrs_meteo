@@ -17,10 +17,11 @@ void ILI9341_DrawImage(const uint8_t* image, uint8_t orientation);
 
 void ILI9341_DrawChar_Scaled(char ch, const uint8_t font[], uint16_t X, uint16_t Y, uint16_t color, uint16_t bgcolor, uint8_t size);
 void ILI9341_DrawText_Scaled(char* str, const uint8_t font[], uint16_t X, uint16_t Y, uint16_t color, uint16_t bgcolor, uint16_t size);
-void DrawDataCentered(char* big, char* smaller, const uint8_t font[], uint8_t fontlarge, uint8_t fontsmall);
 void DrawDataCentered_WithOffset(char* big, const uint8_t font[], uint8_t fontlarge, uint8_t offset, uint16_t color);
-void DrawDataInBox(char* big, char* smaller, const uint8_t font[], uint8_t fontlarge, uint8_t fontsmall,
-                   uint16_t boxX, uint16_t boxY, uint16_t boxW, uint16_t boxH);
-void DrawSummary(char* big[4], char* small[4], const uint8_t font[]);
 
+void DrawDataCentered2(char* big, char* smaller, char* line2, const uint8_t font[], uint8_t fontlarge, uint8_t fontsmall, uint8_t line2size);
+void DrawDataInBox_TwoLines(char* big, char* smaller, char* line2, const uint8_t font[],
+                            uint8_t fontlarge, uint8_t fontsmall, uint8_t line2size,
+                            uint16_t boxX, uint16_t boxY, uint16_t boxW, uint16_t boxH);
+void DrawSummary(char* big[4], char* small[4], char* labels[4], const uint8_t font[]);
 #endif

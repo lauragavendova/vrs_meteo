@@ -58,8 +58,9 @@ char string_buf[7];
 
 uint8_t screen = 0;
 uint32_t change = 0;
-volatile uint8_t pause = 0;
+volatile uint8_t btn_pressed = 0;
 
+uint32_t mode = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -108,6 +109,11 @@ int main(void)
   MX_I2C1_Init();
 
   /* USER CODE BEGIN 2 */
+
+  char* big[4] = {"10:00", "22.1", "50", "1013"};
+  char* small[4] = {":00", "C", "%", "hPa"};
+  char* line2[4] = {"date", "", "OK", ""};
+
   ILI9341_Reset();
   HAL_Delay(10);
   ILI9341_Init();
@@ -116,19 +122,18 @@ int main(void)
   ILI9341_SetRotation(3);
   ILI9341_FillScreen(BGCOLOR);
 
-  DrawDataCentered_WithOffset("Vitajte!", FONT4, 2, 80, FCOLOR);
-  DrawDataCentered_WithOffset("Autori: Bodor, Gavendova,", FONT4, 1, 130, FCOLOR);
-  DrawDataCentered_WithOffset("Kapina, Krajmer", FONT4, 1, 130 + FONT4[2] + 1, FCOLOR);
+
+  if(mode==0){
+  DrawDataCentered_WithOffset("Vitajte!", FONT4, 2, 75, FCOLOR);
+  DrawDataCentered_WithOffset("Autori: Bodor, Gavendova,", FONT4, 1, 125, FCOLOR);
+  DrawDataCentered_WithOffset("Kapina, Krajmer", FONT4, 1, 125 + FONT4[2] + 1, FCOLOR);
   DrawDataCentered_WithOffset("*pre zastavenie obrazovky stlacte tlacidlo", FONT4, 1, 240 - FONT4[2] - 1, RED);
   HAL_Delay(3000);
 
-    ILI9341_FillScreen(BGCOLOR);
-    char* big[4] = {"10:00", "22.1", "50", "1013"};
-    char* small[4] = {":00", "C", "%", "hPa"};
-
+  ILI9341_FillScreen(BGCOLOR);
 
   while (1) {
-      if (!pause && (HAL_GetTick() - change >= 5000)) {
+      if (!btn_pressed && (HAL_GetTick() - change >= 5000)) {
           screen++;
           if (screen > 4) screen = 0;
 
@@ -136,29 +141,42 @@ int main(void)
 
           ILI9341_FillScreen(BGCOLOR);
           switch (screen) {
-          	  case 0: DrawSummary(big, small, FONT4); break;
-              case 1: DrawDataCentered("10:00", ":00", FONT4, 5, 3); break;
-              case 2: DrawDataCentered("22.1", "C", FONT4, 5, 3);    break;
-              case 3: DrawDataCentered("50", "%", FONT4, 5, 3);      break;
-              case 4: DrawDataCentered("1013", "hPa", FONT4, 5, 3);  break;
+          	  case 0: DrawSummary(big, small, line2, FONT4);  break;
+              case 1: DrawDataCentered2("10:00", ":00", "date", FONT4, 5, 3, 3); break;
+              case 2: DrawDataCentered2("22.1", "C","", FONT4, 5, 3, 0);    break;
+              case 3: DrawDataCentered2("50", "%", "OK", FONT4, 5, 3, 3);      break;
+              case 4: DrawDataCentered2("1013", "hPa","", FONT4, 5, 3,0);  break;
+              case 5:  break; //pocasie
           }
       }
   }
+  }
 
-  //test printout
-//  ILI9341_DrawRectangle(0, 0, 320, 30, BLUE);
-//  ILI9341_DrawText("WEATHER STATION", FONT4, 60, 8, WHITE, BLUE);
-//
-//    ILI9341_DrawHollowRectangleCoord(10, 40, 310, 75, WHITE);
-//  	ILI9341_DrawText("Temperature:        *C", FONT4, 50, 50, WHITE, BLACK);
-//  	digit_to_ascii_XX_X(temperature, string_buf);
-//  	ILI9341_DrawText(string_buf, FONT4, 190, 50, WHITE, BLACK);
-//
-//  	ILI9341_DrawHollowRectangleCoord(10, 85, 310, 120, WHITE);
-//  	ILI9341_DrawText("Pressure:           kPa", FONT4, 50, 95, WHITE, BLACK);
-//  	digit3_to_ascii(pressure, string_buf);
-//  	ILI9341_DrawText(string_buf, FONT4, 190, 95, WHITE, BLACK);
+  if(mode==1){
+    DrawDataCentered_WithOffset("Vitajte!", FONT4, 2, 75, FCOLOR);
+    DrawDataCentered_WithOffset("Autori: Bodor, Gavendova,", FONT4, 1, 125, FCOLOR);
+    DrawDataCentered_WithOffset("Kapina, Krajmer", FONT4, 1, 125 + FONT4[2] + 1, FCOLOR);
+    DrawDataCentered_WithOffset("*pre prepnutie obrazovky stlacte tlacidlo", FONT4, 1, 240 - FONT4[2] - 1, RED);
 
+
+    while (1) {
+        if (btn_pressed) {
+            screen++;
+            if (screen > 5) screen = 0;
+
+            ILI9341_FillScreen(BGCOLOR);
+            switch (screen) {
+                      	  case 0: DrawSummary(big, small, line2, FONT4);  break;
+                          case 1: DrawDataCentered2("10:00", ":00", "date", FONT4, 5, 3, 3); break;
+                          case 2: DrawDataCentered2("22.1", "C","", FONT4, 5, 3, 0);    break;
+                          case 3: DrawDataCentered2("50", "%", "OK", FONT4, 5, 3, 3);      break;
+                          case 4: DrawDataCentered2("1013", "hPa","", FONT4, 5, 3,0);  break;
+                          case 5:  break; //pocasie
+                      }
+            }
+            btn_pressed = 0;
+        }
+    }
 
   /* USER CODE END 2 */
 
@@ -233,8 +251,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   if (GPIO_Pin == BTN_Pin)
   {
-	  pause = !pause;
-    HAL_GPIO_TogglePin(GPIOB, LD3_Pin);
+	btn_pressed = !btn_pressed;
+	HAL_GPIO_TogglePin(GPIOB, LD3_Pin);
+
   }
 }
 /* USER CODE END 4 */

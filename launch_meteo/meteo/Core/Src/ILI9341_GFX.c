@@ -311,44 +311,6 @@ void ILI9341_DrawText_Scaled(char* str, const uint8_t font[], uint16_t X, uint16
     }
 }
 
-void DrawDataCentered(char* big, char* smaller, const uint8_t font[], uint8_t fontlarge, uint8_t fontsmall)
-{
-    uint8_t fOffset = font[0];
-    uint8_t fHeight = font[2]-4;
-
-    uint16_t widthLarge = 0;
-    uint16_t widthSmall = 0;
-
-    // sirka big
-    for (int i = 0; big[i] != '\0'; i++) {
-        uint32_t charIndex = ((big[i] - 0x20) * fOffset) + 4;
-        uint8_t charWidth = font[charIndex];
-
-        widthLarge += (charWidth+1) * fontlarge;
-    }
-
-    // sirka smaller
-    for (int i = 0; smaller[i] != '\0'; i++) {
-        uint32_t charIndex = ((smaller[i] - 0x20) * fOffset) + 4;
-        uint8_t charWidth = font[charIndex];
-
-        widthSmall += (charWidth + 1) * fontsmall;
-    }
-
-    // stred
-    uint16_t totalWidth = widthLarge + widthSmall;
-    uint16_t xStart = (320 - totalWidth) / 2;
-    uint16_t yStart = (240 - (fHeight * fontlarge)) / 2;
-
-    // big
-    ILI9341_DrawText_Scaled(big, font, xStart, yStart, FCOLOR, BGCOLOR, fontlarge);
-
-    // smaller
-    uint16_t xSmall = xStart + widthLarge;
-    uint16_t ySmall = yStart + (fHeight * fontlarge) - (fHeight * fontsmall);
-    ILI9341_DrawText_Scaled(smaller, font, xSmall, ySmall, FCOLOR, BGCOLOR, fontsmall);
-}
-
 void DrawDataCentered_WithOffset(char* big, const uint8_t font[], uint8_t fontlarge, uint8_t offset, uint16_t color)
 {
     uint8_t fOffset = font[0];
@@ -370,42 +332,115 @@ void DrawDataCentered_WithOffset(char* big, const uint8_t font[], uint8_t fontla
     ILI9341_DrawText_Scaled(big, font, xStart, yStart, color, BGCOLOR, fontlarge);
 }
 
-
-void DrawDataInBox(char* big, char* smaller, const uint8_t font[], uint8_t fontlarge, uint8_t fontsmall,
-                   uint16_t boxX, uint16_t boxY, uint16_t boxW, uint16_t boxH)
+void DrawDataCentered2(char* big, char* smaller, char* line2, const uint8_t font[], uint8_t fontlarge, uint8_t fontsmall, uint8_t line2size)
 {
     uint8_t fOffset = font[0];
-    uint8_t fHeight = font[2] - 4;
+    uint8_t fHeight = font[2]-4;
+    uint8_t spacing = 8;
 
     uint16_t widthLarge = 0;
     uint16_t widthSmall = 0;
+    uint16_t widthLine2 = 0;
 
+    // sirka bigger
     for (int i = 0; big[i] != '\0'; i++) {
-        uint32_t charIndex = ((big[i] - 0x20) * fOffset) + 4;
-        widthLarge += (font[charIndex] + 1) * fontlarge;
-    }
+            uint32_t charIndex = ((big[i] - 0x20) * fOffset) + 4;
+            uint8_t charWidth = font[charIndex];
+            widthLarge += (charWidth+1) * fontlarge;
+        }
 
-
+    // sirka smaller
     for (int i = 0; smaller[i] != '\0'; i++) {
-        uint32_t charIndex = ((smaller[i] - 0x20) * fOffset) + 4;
-        widthSmall += (font[charIndex] + 1) * fontsmall;
+            uint32_t charIndex = ((smaller[i] - 0x20) * fOffset) + 4;
+            uint8_t charWidth = font[charIndex];
+
+            widthSmall += (charWidth + 1) * fontsmall;
+        }
+
+    // sirka line2
+    for (int i = 0; line2[i] != '\0'; i++) {
+        uint32_t charIndex = ((line2[i] - 0x20) * fOffset) + 4;
+        widthLine2 += (font[charIndex] + 1) * line2size;
     }
 
-    uint16_t totalWidth = widthLarge + widthSmall;
+    // stred
+    uint16_t totalWidth1 = widthLarge + widthSmall;
+    uint16_t totalHeight = (fHeight * fontlarge) + spacing + (fHeight * line2size);
 
+    uint16_t xStart1 = (320 - totalWidth1) / 2;
+    uint16_t xStart2 = (320 - widthLine2) / 2;
+    uint16_t yStart = (240 - totalHeight) / 2;
 
-    uint16_t xStart = boxX + (boxW - totalWidth) / 2;
-    uint16_t yStart = boxY + (boxH - (fHeight * fontlarge)) / 2;
+    // line1
+    ILI9341_DrawText_Scaled(big, font, xStart1, yStart, FCOLOR, BGCOLOR, fontlarge);
 
-
-    ILI9341_DrawText_Scaled(big, font, xStart, yStart, FCOLOR, BGCOLOR, fontlarge);
-
-    uint16_t xSmall = xStart + widthLarge;
     uint16_t ySmall = yStart + (fHeight * fontlarge) - (fHeight * fontsmall);
-    ILI9341_DrawText_Scaled(smaller, font, xSmall, ySmall, FCOLOR, BGCOLOR, fontsmall);
+    ILI9341_DrawText_Scaled(smaller, font, xStart1 + widthLarge, ySmall, FCOLOR, BGCOLOR, fontsmall);
+
+    // line2
+    uint16_t yLine2 = yStart + (fHeight * fontlarge) + spacing;
+    ILI9341_DrawText_Scaled(line2, font, xStart2, yLine2, FCOLOR, BGCOLOR, line2size);
 }
 
-void DrawSummary(char* big[4], char* small[4], const uint8_t font[])
+void DrawDataInBox_TwoLines(char* big, char* smaller, char* line2, const uint8_t font[],
+                            uint8_t fontlarge, uint8_t fontsmall, uint8_t line2size,
+                            uint16_t boxX, uint16_t boxY, uint16_t boxW, uint16_t boxH)
+{
+    uint8_t fOffset = font[0];
+    uint8_t fHeight = font[2]-4;
+    uint8_t spacing = 2;
+
+    uint16_t widthLarge = 0;
+    uint16_t widthSmall = 0;
+    uint16_t widthLine2 = 0;
+
+    // sirka bigger
+    for (int i = 0; big[i] != '\0'; i++) {
+        uint32_t charIndex = ((big[i] - 0x20) * fOffset) + 4;
+        uint8_t charWidth = font[charIndex];
+        widthLarge += (charWidth + 1) * fontlarge;
+    }
+
+    // sirka
+    for (int i = 0; smaller[i] != '\0'; i++) {
+        uint32_t charIndex = ((smaller[i] - 0x20) * fOffset) + 4;
+        uint8_t charWidth = font[charIndex]; // opravené na správny index v poli
+        widthSmall += (charWidth + 1) * fontsmall;
+    }
+
+    // sirka line2
+    for (int i = 0; line2[i] != '\0'; i++) {
+        uint32_t charIndex = ((line2[i] - 0x20) * fOffset) + 4;
+        widthLine2 += (font[charIndex] + 1) * line2size;
+    }
+
+        uint16_t totalHeight;
+        if (line2[0] == '\0') {
+            totalHeight = (fHeight * fontlarge);
+        } else {
+            totalHeight = (fHeight * fontlarge) + spacing + (fHeight * line2size);
+        }
+
+    // stred
+    uint16_t totalWidth1 = widthLarge + widthSmall;
+
+
+    uint16_t xStart1 = boxX + (boxW - totalWidth1) / 2;
+    uint16_t xStart2 = boxX + (boxW - widthLine2) / 2;
+    uint16_t yStart = boxY + (boxH - totalHeight) / 2;
+
+    // line1
+    ILI9341_DrawText_Scaled(big, font, xStart1, yStart, FCOLOR, BGCOLOR, fontlarge);
+
+    uint16_t ySmall = yStart + (fHeight * fontlarge) - (fHeight * fontsmall);
+    ILI9341_DrawText_Scaled(smaller, font, xStart1 + widthLarge, ySmall, FCOLOR, BGCOLOR, fontsmall);
+
+    // line2
+    uint16_t yLine2 = yStart + (fHeight * fontlarge) + spacing;
+    ILI9341_DrawText_Scaled(line2, font, xStart2, yLine2, FCOLOR, BGCOLOR, line2size);
+}
+
+void DrawSummary(char* big[4], char* small[4], char* labels[4], const uint8_t font[])
 {
     uint16_t qW = 160; // 320/2
     uint16_t qH = 120; // 240/2
@@ -415,8 +450,11 @@ void DrawSummary(char* big[4], char* small[4], const uint8_t font[])
 
     ILI9341_DrawHLine(0, 120, 320, FCOLOR);
     ILI9341_DrawVLine(160, 0, 240, FCOLOR);
-        
+
     for (int i = 0; i < 4; i++) {
-        DrawDataInBox(big[i], small[i], font, 2, 1, xCoords[i], yCoords[i], qW, qH);
+        DrawDataInBox_TwoLines(big[i], small[i], labels[i], font, 2, 1, 1,
+            xCoords[i], yCoords[i], qW, qH
+        );
     }
 }
+
