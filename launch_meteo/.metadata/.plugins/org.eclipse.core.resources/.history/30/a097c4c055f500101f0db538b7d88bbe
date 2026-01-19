@@ -55,8 +55,7 @@ int16_t temperature = 853;
 int16_t pressure = 111;
 int8_t screen_index = 0;
 int8_t screen_status = 0;
-int32_t butonCounter = 0;
-int8_t mode = 0;
+int8_t butonCounter = 0;
 char string_buf[7];
 /* USER CODE END PV */
 

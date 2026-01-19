@@ -1,17 +1,17 @@
-17:19:03 **** Incremental Build of configuration Debug for project meteo ****
+17:58:37 **** Incremental Build of configuration Debug for project meteo ****
 make -j12 all 
-arm-none-eabi-gcc "../Core/Src/tim.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F303x8 -c -I../Core/Inc -I../Drivers/STM32F3xx_HAL_Driver/Inc -I../Drivers/STM32F3xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F3xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/tim.d" -MT"Core/Src/tim.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/tim.o"
+arm-none-eabi-gcc "../Core/Src/stm32f3xx_it.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F303x8 -c -I../Core/Inc -I../Drivers/STM32F3xx_HAL_Driver/Inc -I../Drivers/STM32F3xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F3xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/stm32f3xx_it.d" -MT"Core/Src/stm32f3xx_it.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/stm32f3xx_it.o"
 arm-none-eabi-gcc -o "meteo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Git\STM_cubeIDE\projects_vrs\vrs_meteo\launch_meteo\meteo\STM32F303K8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="meteo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 Finished building target: meteo.elf
  
 arm-none-eabi-size  meteo.elf 
 arm-none-eabi-objdump -h -S meteo.elf  > "meteo.list"
    text	   data	    bss	    dec	    hex	filename
-  25860	     20	   2180	  28060	   6d9c	meteo.elf
+  25868	     20	   2188	  28076	   6dac	meteo.elf
 Finished building: default.size.stdout
  
 Finished building: meteo.list
  
 
-17:19:05 Build Finished. 0 errors, 0 warnings. (took 1s.582ms)
+17:58:38 Build Finished. 0 errors, 0 warnings. (took 1s.135ms)
 

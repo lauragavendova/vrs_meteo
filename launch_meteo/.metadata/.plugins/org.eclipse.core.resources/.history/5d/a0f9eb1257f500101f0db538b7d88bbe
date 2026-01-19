@@ -212,7 +212,7 @@ void EXTI1_IRQHandler(void)
   HAL_GPIO_EXTI_IRQHandler(BTN_Pin);
   /* USER CODE BEGIN EXTI1_IRQn 1 */
   HAL_TIM_Base_Start_IT(&htim7);
-  //butonCounter = 0;
+  butonCounter = 0;
   /* USER CODE END EXTI1_IRQn 1 */
 }
 
@@ -280,13 +280,12 @@ void TIM7_DAC2_IRQHandler(void)
   else {
 	  HAL_TIM_Base_Stop_IT(&htim7);
 
-	  if(butonCounter >= 300) {
+	  if(butonCounter >= 3000) {
 		  mode = SET;
       }
-	  if(butonCounter > 20 && butonCounter < 300) {
+	  else if(butonCounter > 50 && butonCounter < 1000) {
 		  screen_status = SET;
 	  }
-	  butonCounter = 0;
   }
   /* USER CODE END TIM7_DAC2_IRQn 1 */
 }
