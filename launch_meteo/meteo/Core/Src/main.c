@@ -23,6 +23,7 @@
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
+#include <stdio.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -61,6 +62,7 @@ uint32_t change = 0;
 volatile uint8_t btn_pressed = 0;
 
 uint32_t mode = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -124,39 +126,68 @@ int main(void)
 
 
   if(mode==0){
-  DrawDataCentered_WithOffset("Vitajte!", FONT4, 2, 75, FCOLOR);
-  DrawDataCentered_WithOffset("Autori: Bodor, Gavendova,", FONT4, 1, 125, FCOLOR);
-  DrawDataCentered_WithOffset("Kapina, Krajmer", FONT4, 1, 125 + FONT4[2] + 1, FCOLOR);
-  DrawDataCentered_WithOffset("*pre zastavenie obrazovky stlacte tlacidlo", FONT4, 1, 240 - FONT4[2] - 1, RED);
-  HAL_Delay(3000);
+      DrawDataCentered_WithOffset("Welcome!", FONT4, 2, 75, FCOLOR);
+      DrawDataCentered_WithOffset("Creators: Bodor, Gavendova,", FONT4, 1, 125, FCOLOR);
+      DrawDataCentered_WithOffset("Kapina, Krajmer", FONT4, 1, 125 + FONT4[2] + 1, FCOLOR);
+      DrawDataCentered_WithOffset("*Press the button to stop the screen", FONT4, 1, 240 - FONT4[2] - 1, RED);
+      HAL_Delay(3000);
 
-  ILI9341_FillScreen(BGCOLOR);
+      ILI9341_FillScreen(BGCOLOR);
 
-  while (1) {
-      if (!btn_pressed && (HAL_GetTick() - change >= 5000)) {
-          screen++;
-          if (screen > 4) screen = 0;
+      uint32_t last_sim_update = 0;
+      int16_t sim_pressure = 1010;
+      int16_t last_displayed_pressure = -1;
 
-          change = HAL_GetTick();
+      while (1) {
+          if (!btn_pressed && (HAL_GetTick() - change >= 5000)) {
+              screen++;
+              if (screen > 5) screen = 0;
+              change = HAL_GetTick();
 
-          ILI9341_FillScreen(BGCOLOR);
-          switch (screen) {
-          	  case 0: DrawSummary(big, small, line2, FONT4);  break;
-              case 1: DrawDataCentered2("10:00", ":00", "date", FONT4, 5, 3, 3); break;
-              case 2: DrawDataCentered2("22.1", "C","", FONT4, 5, 3, 0);    break;
-              case 3: DrawDataCentered2("50", "%", "OK", FONT4, 5, 3, 3);      break;
-              case 4: DrawDataCentered2("1013", "hPa","", FONT4, 5, 3,0);  break;
-              case 5:  break; //pocasie
+              ILI9341_FillScreen(BGCOLOR);
+
+              // Pri prepnutí obrazovky resetujeme "last" hodnotu, aby sa hneď vykreslila nová
+              last_displayed_pressure = -1;
+
+              switch (screen) {
+                  case 0: DrawSummary(big, small, line2, FONT4);  break;
+                  case 1: DrawDataCentered2("10:00", ":00", "date", FONT4, 5, 3, 3); break;
+                  case 2: DrawDataCentered2("22.1", "C","", FONT4, 5, 3, 0);    break;
+                  case 3: DrawDataCentered2("50", "%", "OK", FONT4, 5, 3, 3);      break;
+                  case 4: break;
+                  case 5: DrawSun(YELLOW); break;
+              }
+          }
+
+          if (HAL_GetTick() - last_sim_update >= 500) {
+              last_sim_update = HAL_GetTick();
+              sim_pressure++;
+              if (sim_pressure > 1030) sim_pressure = 990;
+          }
+
+          //dynamic
+
+          if (sim_pressure != last_displayed_pressure) {
+
+              sprintf(string_buf, "%d", sim_pressure);
+
+              if (screen == 4) {
+                  DrawDataCentered2(string_buf, "hPa", "", FONT4, 5, 3, 0);
+              }
+              else if (screen == 0) {
+                  big[3] = string_buf;
+                  DrawSummary(big, small, line2, FONT4);
+              }
+              last_displayed_pressure = sim_pressure;
           }
       }
-  }
-  }
+    }
 
   if(mode==1){
-    DrawDataCentered_WithOffset("Vitajte!", FONT4, 2, 75, FCOLOR);
-    DrawDataCentered_WithOffset("Autori: Bodor, Gavendova,", FONT4, 1, 125, FCOLOR);
+    DrawDataCentered_WithOffset("Welcome!", FONT4, 2, 75, FCOLOR);
+    DrawDataCentered_WithOffset("Creators: Bodor, Gavendova,", FONT4, 1, 125, FCOLOR);
     DrawDataCentered_WithOffset("Kapina, Krajmer", FONT4, 1, 125 + FONT4[2] + 1, FCOLOR);
-    DrawDataCentered_WithOffset("*pre prepnutie obrazovky stlacte tlacidlo", FONT4, 1, 240 - FONT4[2] - 1, RED);
+    DrawDataCentered_WithOffset("*Press the button to switch screens", FONT4, 1, 240 - FONT4[2] - 1, RED);
 
 
     while (1) {
@@ -171,7 +202,7 @@ int main(void)
                           case 2: DrawDataCentered2("22.1", "C","", FONT4, 5, 3, 0);    break;
                           case 3: DrawDataCentered2("50", "%", "OK", FONT4, 5, 3, 3);      break;
                           case 4: DrawDataCentered2("1013", "hPa","", FONT4, 5, 3,0);  break;
-                          case 5:  break; //pocasie
+                          case 5: DrawSun(YELLOW); break;
                       }
             }
             btn_pressed = 0;

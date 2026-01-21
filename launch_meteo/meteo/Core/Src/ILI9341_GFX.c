@@ -2,6 +2,7 @@
 #include "ILI9341_GFX.h"
 
 #include <string.h>
+#include <math.h>
 
 /* imprecise small delay */
 __STATIC_INLINE void DelayUs(volatile uint32_t us)
@@ -275,7 +276,7 @@ void ILI9341_DrawChar_Scaled(char ch, const uint8_t font[], uint16_t X, uint16_t
 
     uint8_t *tempChar = (uint8_t*)&font[((ch - 0x20) * fOffset) + 4];
     uint8_t realWidth = tempChar[0];
-    ILI9341_DrawRectangle(X, Y, (realWidth + 1) * size, fHeight * size, bgcolor);
+    ILI9341_DrawRectangle(X, Y, (realWidth + 5) * size, fHeight * size, bgcolor);
 
     for (int j=0; j < fHeight; j++)
     {
@@ -458,3 +459,38 @@ void DrawSummary(char* big[4], char* small[4], char* labels[4], const uint8_t fo
     }
 }
 
+void DrawSun(uint16_t color)
+{
+	uint16_t X = 160; uint16_t Y = 120;
+	uint16_t radius = 30;
+	ILI9341_DrawHollowCircle(X, Y, radius, color);
+
+    uint16_t len = 30;
+
+    uint16_t diag = (radius)*0.7;
+
+    ILI9341_DrawVLine(X, Y - radius - len, len, color); // hore
+    ILI9341_DrawVLine(X, Y + radius, len, color);       // dole
+    ILI9341_DrawHLine(X - radius - len, Y, len, color); // vlavo
+    ILI9341_DrawHLine(X + radius, Y, len, color);       // vpravo
+
+    // hore vpravo
+    for(int i = 0; i < len; i++){
+    ILI9341_DrawPixel(X + diag + i, Y - diag - i, color);
+    }
+
+    // hore vlavo
+    for(int i = 0; i < len; i++){
+        ILI9341_DrawPixel(X - diag - i, Y - diag - i, color);
+    }
+
+    // dole vpravo
+    for(int i = 0; i < len; i++){
+        ILI9341_DrawPixel(X + diag + i, Y + diag + i, color);
+    }
+
+    // dole vlavo
+    for(int i = 0; i < len; i++){
+        ILI9341_DrawPixel(X - diag - i, Y + diag + i, color);
+    }
+}

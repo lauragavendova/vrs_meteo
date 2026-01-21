@@ -24,4 +24,5 @@ void DrawDataInBox_TwoLines(char* big, char* smaller, char* line2, const uint8_t
                             uint8_t fontlarge, uint8_t fontsmall, uint8_t line2size,
                             uint16_t boxX, uint16_t boxY, uint16_t boxW, uint16_t boxH);
 void DrawSummary(char* big[4], char* small[4], char* labels[4], const uint8_t font[]);
+void DrawSun(uint16_t color);
 #endif
