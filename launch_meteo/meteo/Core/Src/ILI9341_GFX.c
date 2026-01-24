@@ -249,7 +249,7 @@ void ILI9341_DrawChar_Scaled(char ch, const uint8_t font[], uint16_t X,
 
 	uint8_t *tempChar = (uint8_t*) &font[((ch - 0x20) * fOffset) + 4];
 	uint8_t realWidth = tempChar[0];
-	ILI9341_DrawRectangle(X, Y, (realWidth + 5) * size,
+	ILI9341_DrawRectangle(X, Y, (realWidth + 2) * size,
 			(fHeight * size) - 4 * size, bgcolor);
 
 	for (int j = 0; j < fHeight; j++) {
@@ -305,11 +305,12 @@ void DrawDataCentered_WithOffset(char *big, const uint8_t font[],
 
 void DrawDataCentered2(char *big, char *smaller, char *line2,
 		const uint8_t font[], uint8_t fontlarge, uint8_t fontsmall,
-		uint8_t line2size) {
+		uint8_t line2size,
+		bool drawBig, bool drawSmall, bool drawLine2) {
 	uint8_t fOffset = font[0];
 	uint8_t fWidth = font[1];
 	uint8_t fHeight = font[2] - 4;
-	uint8_t spacing = 8;
+	uint8_t spacing = 20;
 
 	uint16_t widthLarge = 0;
 	uint16_t widthSmall = 0;
@@ -338,35 +339,51 @@ void DrawDataCentered2(char *big, char *smaller, char *line2,
 
 	// stred
 	uint16_t totalWidth1 = widthLarge + widthSmall;
-	uint16_t totalHeight = (fHeight * fontlarge) + spacing
-			+ (fHeight * line2size);
+	uint16_t totalHeight;
+		if (line2[0] == '\0') {
+			totalHeight = (fHeight * fontlarge);
+		} else {
+			totalHeight = (fHeight * fontlarge) + spacing + (fHeight * line2size);
+		}
 
 	uint16_t xStart1 = (320 - totalWidth1) / 2;
 	uint16_t xStart2 = (320 - widthLine2) / 2;
 	uint16_t yStart = (240 - totalHeight) / 2;
 
-	ILI9341_DrawRectangle(xStart1 - 5, yStart, (fWidth) * fontlarge,
-			(fHeight * fontlarge) - 4 * fontlarge, BGCOLOR);
-	// line1
-	ILI9341_DrawText_Scaled(big, font, xStart1, yStart, FCOLOR, BGCOLOR,
-			fontlarge);
+	if (drawBig) {
+		ILI9341_DrawRectangle(xStart1 - 10, yStart, (fWidth) * fontlarge,
+				(fHeight * fontlarge) - 4 * fontlarge, BGCOLOR);
+		ILI9341_DrawText_Scaled(big, font, xStart1 - 3, yStart, FCOLOR, BGCOLOR, /////
+				fontlarge);
+	}
 
-	uint16_t ySmall = yStart + (fHeight * fontlarge) - (fHeight * fontsmall);
-	ILI9341_DrawText_Scaled(smaller, font, xStart1 + widthLarge, ySmall, FCOLOR,
-			BGCOLOR, fontsmall);
+	if (drawSmall) {
+		uint16_t ySmall = yStart + (fHeight * fontlarge)
+				- (fHeight * fontsmall);
+		ILI9341_DrawRectangle(xStart1 + widthLarge - 5, ySmall - 30,
+				(fWidth) * fontsmall + 30, (fHeight * fontsmall) * 2, BGCOLOR);
+		ILI9341_DrawText_Scaled(smaller, font, xStart1 + widthLarge, ySmall,
+		FCOLOR, BGCOLOR, fontsmall);
+	}
 
-	// line2
-	uint16_t yLine2 = yStart + (fHeight * fontlarge) + spacing;
-	//ILI9341_DrawText_Scaled(line2, font, xStart2, yLine2, FCOLOR, BGCOLOR, line2size);
+	if (drawLine2) {
+		uint16_t yLine2 = yStart + (fHeight * fontlarge) + spacing;
+		ILI9341_DrawText_Scaled(line2, font, xStart2, yLine2, FCOLOR, BGCOLOR,
+				line2size);
+	}
 }
 
-void DrawDataInBox_TwoLines(char *big, char *smaller, char *line2,
-		const uint8_t font[], uint8_t fontlarge, uint8_t fontsmall,
-		uint8_t line2size, uint16_t boxX, uint16_t boxY, uint16_t boxW,
-		uint16_t boxH) {
+void DrawDataInBox(char *big, char *smaller, char *line2, const uint8_t font[],
+		uint8_t fontlarge, uint8_t fontsmall, uint8_t line2size, uint16_t boxX,
+		uint16_t boxY,
+		bool drawBig, bool drawSmall, bool drawLine2) {
+
+	uint16_t boxW = 160;
+	uint16_t boxH = 120;
+
 	uint8_t fOffset = font[0];
 	uint8_t fHeight = font[2] - 4;
-	uint8_t spacing = 2;
+	uint8_t spacing = 10;
 
 	uint16_t widthLarge = 0;
 	uint16_t widthSmall = 0;
@@ -382,7 +399,7 @@ void DrawDataInBox_TwoLines(char *big, char *smaller, char *line2,
 	// sirka
 	for (int i = 0; smaller[i] != '\0'; i++) {
 		uint32_t charIndex = ((smaller[i] - 0x20) * fOffset) + 4;
-		uint8_t charWidth = font[charIndex]; // opravené na správny index v poli
+		uint8_t charWidth = font[charIndex];
 		widthSmall += (charWidth + 1) * fontsmall;
 	}
 
@@ -407,42 +424,50 @@ void DrawDataInBox_TwoLines(char *big, char *smaller, char *line2,
 	uint16_t yStart = boxY + (boxH - totalHeight) / 2;
 
 	// line1
-	ILI9341_DrawText_Scaled(big, font, xStart1, yStart, FCOLOR, BGCOLOR,
-			fontlarge);
+	if (drawBig) {
+		ILI9341_DrawText_Scaled(big, font, xStart1-3, yStart, FCOLOR, BGCOLOR,
+				fontlarge);
+	}
 
-	uint16_t ySmall = yStart + (fHeight * fontlarge) - (fHeight * fontsmall);
-	ILI9341_DrawText_Scaled(smaller, font, xStart1 + widthLarge, ySmall, FCOLOR,
-			BGCOLOR, fontsmall);
+	if (drawSmall) {
+		uint16_t ySmall = yStart + (fHeight * fontlarge)
+				- (fHeight * fontsmall);
+		ILI9341_DrawText_Scaled(smaller, font, xStart1 + widthLarge, ySmall,
+				FCOLOR,
+				BGCOLOR, fontsmall);
+	}
 
 	// line2
-	uint16_t yLine2 = yStart + (fHeight * fontlarge) + spacing;
-	ILI9341_DrawText_Scaled(line2, font, xStart2, yLine2, FCOLOR, BGCOLOR,
-			line2size);
-}
-
-void DrawSummary(char *big[4], char *small[4], char *labels[4],
-		const uint8_t font[]) {
-	uint16_t qW = 160; // 320/2
-	uint16_t qH = 120; // 240/2
-
-	uint16_t xCoords[4] = { 0, 160, 0, 160 };
-	uint16_t yCoords[4] = { 0, 0, 120, 120 };
-
-	ILI9341_DrawHLine(0, 120, 320, FCOLOR);
-	ILI9341_DrawVLine(160, 0, 240, FCOLOR);
-
-	for (int i = 0; i < 4; i++) {
-		DrawDataInBox_TwoLines(big[i], small[i], labels[i], font, 2, 1, 1,
-				xCoords[i], yCoords[i], qW, qH);
+	if (drawLine2) {
+		uint16_t yLine2 = yStart + (fHeight * fontlarge) + spacing;
+		ILI9341_DrawText_Scaled(line2, font, xStart2, yLine2, FCOLOR, BGCOLOR,
+				line2size);
 	}
 }
 
+//void DrawSummary(char *big[4], char *small[4], char *labels[4],
+//		const uint8_t font[]) {
+//	uint16_t qW = 160; // 320/2
+//	uint16_t qH = 120; // 240/2
+//
+//	uint16_t xCoords[4] = { 0, 160, 0, 160 };
+//	uint16_t yCoords[4] = { 0, 0, 120, 120 };
+//
+//	ILI9341_DrawHLine(0, 120, 320, FCOLOR);
+//	ILI9341_DrawVLine(160, 0, 240, FCOLOR);
+//
+//	for (int i = 0; i < 4; i++) {
+//		DrawDataInBox_TwoLines(big[i], small[i], labels[i], font, 2, 1, 1,
+//				xCoords[i], yCoords[i], qW, qH);
+//	}
+//}
+
 void DrawSun(uint16_t color, uint8_t thickness) {
 	uint16_t X = 160;
-	uint16_t Y = 120;
+	uint16_t Y = 120 - 30;
 	uint16_t radius = 30;
 	uint16_t len = 30;
-	uint16_t diag = radius * 0.707; //hodnota pre sin(45°)
+	uint16_t diag = radius * 0.707; //hodnota pre sin(45)
 
 	for (uint8_t t = 0; t < thickness; t++) {
 		ILI9341_DrawHollowCircle(X, Y, radius - t, color);
@@ -475,11 +500,13 @@ void DrawSun(uint16_t color, uint8_t thickness) {
 			ILI9341_DrawPixel(X - diag - i, Y + diag + i + t, color);
 		}
 	}
+	DrawDataCentered_WithOffset("SUNNY", FONT4, 3, Y + radius + len + 15,
+	WHITE);
 }
 
 void DrawCloud(uint16_t color, uint8_t thickness) {
 	uint16_t X = 160;
-	uint16_t Y = 120;
+	uint16_t Y = 120 - 20;
 	uint16_t rMain = 40;
 	uint16_t rSide = 30;
 	uint16_t offset = 45;
@@ -559,14 +586,15 @@ void DrawCloud(uint16_t color, uint8_t thickness) {
 			ILI9341_DrawPixel(i, Y + 5 + rSide - t, color);
 		}
 	}
+	DrawDataCentered_WithOffset("CLOUDY", FONT4, 3, Y + rMain + 15, DARKGREY);
 }
 
 void DrawRain(uint16_t color, uint8_t thickness) {
-	uint16_t X = 160;
-	uint16_t Y = 120;
 	uint16_t rMain = 40;
 	uint16_t rSide = 30;
 	uint16_t offset = 45;
+	uint16_t X = 160;
+	uint16_t Y = 120 - rSide / 2 - 20 / 2;
 
 	for (uint8_t t = 0; t < thickness; t++) {
 
@@ -664,4 +692,31 @@ void DrawRain(uint16_t color, uint8_t thickness) {
 			}
 		}
 	}
+	DrawDataCentered_WithOffset("RAINY", FONT4, 3, rainY + rainLen + 15,
+	DARKGREY);
 }
+
+void DrawFog(uint16_t color, uint8_t thickness) {
+	uint16_t Y = 100;
+
+	for (int i = 0; i < thickness; i++) {
+		ILI9341_DrawHLine((320 - 30) / 2, Y + i - 30, 30, color);
+
+		ILI9341_DrawHLine((320 - 50) / 2 + 40, Y + i - 20, 10, color);
+		ILI9341_DrawHLine((320 - 50) / 2, Y + i - 20, 30, color);
+
+		ILI9341_DrawHLine((320 - 70) / 2, Y + i - 10, 20, color);
+		ILI9341_DrawHLine((320 - 70) / 2 + 30, Y + i - 10, 40, color);
+
+		ILI9341_DrawHLine((320 - 80) / 2, Y + i, 80, color);
+
+		ILI9341_DrawHLine((320 - 70) / 2, Y + i + 10, 20, color);
+		ILI9341_DrawHLine((320 - 70) / 2 + 30, Y + i + 10, 40, color);
+
+		ILI9341_DrawHLine((320 - 50) / 2 + 40, Y + i + 20, 10, color);
+		ILI9341_DrawHLine((320 - 50) / 2, Y + i + 20, 30, color);
+		ILI9341_DrawHLine((320 - 30) / 2, Y + i + 30, 30, color);
+	}
+	DrawDataCentered_WithOffset("FOGGY", FONT4, 3, Y + 30 + 15, DARKGREY);
+}
+
