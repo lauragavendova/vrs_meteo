@@ -353,7 +353,7 @@ void DrawDataCentered2(char *big, char *smaller, char *line2,
 	if (drawBig) {
 		ILI9341_DrawRectangle(xStart1 - 10, yStart, (fWidth) * fontlarge,
 				(fHeight * fontlarge) - 4 * fontlarge, BGCOLOR);
-		ILI9341_DrawText_Scaled(big, font, xStart1 - 3, yStart, FCOLOR, BGCOLOR, /////
+		ILI9341_DrawText_Scaled(big, font, xStart1 - 5, yStart, FCOLOR, BGCOLOR, /////
 				fontlarge);
 	}
 
@@ -382,6 +382,7 @@ void DrawDataInBox(char *big, char *smaller, char *line2, const uint8_t font[],
 	uint16_t boxH = 120;
 
 	uint8_t fOffset = font[0];
+	uint8_t fWidth = font[1];
 	uint8_t fHeight = font[2] - 4;
 	uint8_t spacing = 10;
 
@@ -425,13 +426,15 @@ void DrawDataInBox(char *big, char *smaller, char *line2, const uint8_t font[],
 
 	// line1
 	if (drawBig) {
-		ILI9341_DrawText_Scaled(big, font, xStart1-3, yStart, FCOLOR, BGCOLOR,
+		ILI9341_DrawText_Scaled(big, font, xStart1-5, yStart, FCOLOR, BGCOLOR, /////
 				fontlarge);
 	}
 
 	if (drawSmall) {
 		uint16_t ySmall = yStart + (fHeight * fontlarge)
 				- (fHeight * fontsmall);
+		ILI9341_DrawRectangle(xStart1 + widthLarge - 2, ySmall - 10,
+						(fWidth) * fontsmall + 10, (fHeight * fontsmall) * 2, BGCOLOR);
 		ILI9341_DrawText_Scaled(smaller, font, xStart1 + widthLarge, ySmall,
 				FCOLOR,
 				BGCOLOR, fontsmall);
