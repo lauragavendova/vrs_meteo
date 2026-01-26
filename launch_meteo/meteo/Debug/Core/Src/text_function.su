@@ -1,5 +1,0 @@
-../Core/Src/text_function.c:19:6:digit3_to_ascii	16	static
-../Core/Src/text_function.c:27:6:digit_to_ascii_X_XXX	16	static
-../Core/Src/text_function.c:37:6:digit_to_ascii_XX_X	16	static
-../Core/Src/text_function.c:46:6:digit_to_ascii_XX_XX	16	static
-../Core/Src/text_function.c:55:6:digit_to_ascii_XXX_X	16	static
