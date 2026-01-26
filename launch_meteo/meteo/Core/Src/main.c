@@ -25,6 +25,7 @@
 #include "usart.h"
 #include "gpio.h"
 #include <stdio.h>
+#include <math.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
