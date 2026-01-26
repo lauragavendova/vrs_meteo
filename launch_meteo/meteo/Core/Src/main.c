@@ -24,6 +24,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include <stdio.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -127,6 +128,7 @@ int main(void)
 	USART_ReadTime();
 	HAL_TIM_Base_Start_IT(&htim16);
 
+
 	ILI9341_Reset();
 	HAL_Delay(10);
 	ILI9341_Init();
@@ -169,7 +171,7 @@ int main(void)
 
 	if (mode == 0) {
 		DrawDataCentered_WithOffset("*Press the button to stop the screen",
-		FONT4, 1, 240 - FONT4[2] - 1, RED);
+		FONT4, 1, 240 - FONT4[2] - 1, GREEN);
 		HAL_Delay(3000);
 
 		ILI9341_FillScreen(BGCOLOR);
@@ -351,7 +353,7 @@ int main(void)
 
 if (mode == 1) {
 	DrawDataCentered_WithOffset("*Press the button to switch screens",
-			FONT4, 1, 240 - FONT4[2] - 1, RED);
+			FONT4, 1, 240 - FONT4[2] - 1, GREEN);
 	uint32_t first = 0;
 	while (1) {
 		uint32_t total_s = HAL_GetTick() / 1000;
