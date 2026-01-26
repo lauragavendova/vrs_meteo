@@ -123,8 +123,9 @@ int main(void)
   MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
 
-  USART_ReadTime(date_buff);
-
+  	HAL_Delay(1000);
+	USART_ReadTime();
+	HAL_TIM_Base_Start_IT(&htim16);
 
 	ILI9341_Reset();
 	HAL_Delay(10);
@@ -135,6 +136,7 @@ int main(void)
 	ILI9341_FillScreen(BGCOLOR);
 
 	HAL_TIM_Base_Start_IT(&htim6);
+
 
 	float sim_temp = 22.1f;
 	float last_temp = -1.0f;
@@ -632,18 +634,24 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 }
 
 // odošleme žiadosť na dektop apku pomocou USART portu a čakáme na odpoveď
-int USART_ReadTime(uint8_t* read_buff){
+int USART_ReadTime(){
   uint8_t msg[] = "get\0";
 
   HAL_UART_Transmit(&huart2, msg, sizeof(msg) - 1, HAL_MAX_DELAY);
   uint8_t rx;
 
-  uint8_t i = 0;
-  while(i < 6){
+  for(int i = 0; i < 6; i++){
     HAL_UART_Receive(&huart2, &rx, 1, HAL_MAX_DELAY);
-	read_buff[i] = rx;
-	i++;
+    date_buff[i] = rx;
   }
+  char buff[20];
+  	uint16_t year = 1900;
+  	year += date_buff[5];
+	sprintf(buff, "%02d:%02d:%02d %02d.%02d.%04d", date_buff[0],date_buff[1],date_buff[2],date_buff[3],date_buff[4],year);
+	HAL_UART_Transmit(&huart2, buff, sizeof(buff) - 1, HAL_MAX_DELAY);
+
+
+  return 0;
 }
 
 // time increase
