@@ -65,6 +65,7 @@ char string_hum_lvl[10];
 char string_temp[7];
 
 int8_t mode = 1;
+int8_t redraw = 0;
 uint8_t screen = 0;
 uint32_t change = 0;
 volatile uint8_t btn_pressed = 0;
@@ -148,11 +149,6 @@ int main(void) {
 
 	int16_t weather = 2;
 
-	// simulacia casu
-	int base_hours = 14;
-	int base_minutes = 30;
-	int base_seconds = 45;
-
 	int last_second_val = -1;
 	char time_string[10];
 	char seconds_string[5];
@@ -174,8 +170,6 @@ int main(void) {
 		ILI9341_FillScreen(BGCOLOR);
 
 		while (1) {
-			int current_h = date_buff[0];
-			int current_m = date_buff[1];
 			int current_s = date_buff[2];
 			int year = 1900 + date_buff[5];
 			sprintf(date_string, "%02d.%02d.%04d", date_buff[3], date_buff[4],
@@ -194,6 +188,9 @@ int main(void) {
 
 				switch (screen) {
 				case 0:
+					sprintf(time_string, "%02d:%02d", date_buff[0],
+							date_buff[1]);
+					sprintf(seconds_string, ":%02d", date_buff[2]);
 					ILI9341_DrawHLine(0, 120, 320, FCOLOR);
 					ILI9341_DrawVLine(160, 0, 240, FCOLOR);
 					DrawDataInBox(time_string, seconds_string, date_string,
@@ -210,6 +207,10 @@ int main(void) {
 
 					break;
 				case 1:
+
+					sprintf(time_string, "%02d:%02d", date_buff[0],
+							date_buff[1]);
+					sprintf(seconds_string, ":%02d", date_buff[2]);
 					DrawDataCentered2(time_string, seconds_string, date_string,
 					FONT4, 5, 3, 3, 1, 1, 1);
 					break;
@@ -240,16 +241,16 @@ int main(void) {
 					break;
 				case 5:
 					if (weather == 1) { //oblacno
-						DrawCloud(DARKGREY, 3);
+						DrawCloud(LIGHTGREY, 3);
 					}
 					if (weather == 2) { //slnecno
 						DrawSun(YELLOW, 3);
 					}
 					if (weather == 3) { //dazd
-						DrawRain(DARKGREY, 3);
+						DrawRain(LIGHTGREY, 3);
 					}
 					if (weather == 4) { //hmla
-						DrawFog(DARKGREY, 3);
+						DrawFog(LIGHTGREY, 3);
 					}
 					break;
 				}
@@ -258,43 +259,32 @@ int main(void) {
 
 			//dynamic
 			if (screen == 0) {
-				if (current_s == 0) {
-
-					sprintf(time_string, "%02d:%02d", current_h, current_m);
-					sprintf(seconds_string, ":%02d", current_s);
-
-					DrawDataInBox(time_string, seconds_string, date_string,
-					FONT4, 2, 1, 1, 0, 0, 1, 0, 0);
-				}
 				if (current_s != last_second_val) {
 
-					sprintf(time_string, "%02d:%02d", current_h, current_m);
-					sprintf(seconds_string, ":%02d", current_s);
+					sprintf(time_string, "%02d:%02d", date_buff[0],
+							date_buff[1]);
+					sprintf(seconds_string, ":%02d", date_buff[2]);
+
+					redraw = (current_s == 0) ? 1 : 0;
 
 					DrawDataInBox(time_string, seconds_string, date_string,
-					FONT4, 2, 1, 1, 0, 0, 0, 1, 0);
+					FONT4, 2, 1, 1, 0, 0, redraw, 1, 0);
 
 					last_second_val = current_s;
 				}
-
 			}
 
 			if (screen == 1) {
-				if (current_s == 0) {
-
-					sprintf(time_string, "%02d:%02d", current_h, current_m);
-					sprintf(seconds_string, ":%02d", current_s);
-
-					DrawDataCentered2(time_string, seconds_string, date_string,
-					FONT4, 5, 3, 3, 1, 0, 0);
-				}
 				if (current_s != last_second_val) {
 
-					sprintf(time_string, "%02d:%02d", current_h, current_m);
-					sprintf(seconds_string, ":%02d", current_s);
+					sprintf(time_string, "%02d:%02d", date_buff[0],
+							date_buff[1]);
+					sprintf(seconds_string, ":%02d", date_buff[2]);
+
+					redraw = (current_s == 0) ? 1 : 0;
 
 					DrawDataCentered2(time_string, seconds_string, date_string,
-					FONT4, 5, 3, 3, 0, 1, 0);
+					FONT4, 5, 3, 3, redraw, 1, 0);
 
 					last_second_val = current_s;
 				}
@@ -342,7 +332,6 @@ int main(void) {
 				}
 				last_pressure = sim_pressure;
 			}
-
 		}
 	}
 
@@ -351,8 +340,6 @@ int main(void) {
 		FONT4, 1, 240 - FONT4[2] - 1, GREEN);
 		uint32_t first = 0;
 		while (1) {
-			int current_h = date_buff[0];
-			int current_m = date_buff[1];
 			int current_s = date_buff[2];
 			int year = 1900 + date_buff[5];
 			sprintf(date_string, "%02d.%02d.%04d", date_buff[3], date_buff[4],
@@ -371,6 +358,9 @@ int main(void) {
 				btn_pressed = 0;
 				switch (screen) {
 				case 0:
+					sprintf(time_string, "%02d:%02d", date_buff[0],
+							date_buff[1]);
+					sprintf(seconds_string, ":%02d", date_buff[2]);
 					ILI9341_DrawHLine(0, 120, 320, FCOLOR);
 					ILI9341_DrawVLine(160, 0, 240, FCOLOR);
 					DrawDataInBox(time_string, seconds_string, date_string,
@@ -387,6 +377,10 @@ int main(void) {
 
 					break;
 				case 1:
+
+					sprintf(time_string, "%02d:%02d", date_buff[0],
+							date_buff[1]);
+					sprintf(seconds_string, ":%02d", date_buff[2]);
 					DrawDataCentered2(time_string, seconds_string, date_string,
 					FONT4, 5, 3, 3, 1, 1, 1);
 					break;
@@ -417,16 +411,16 @@ int main(void) {
 					break;
 				case 5:
 					if (weather == 1) { //oblacno
-						DrawCloud(DARKGREY, 3);
+						DrawCloud(LIGHTGREY, 3);
 					}
 					if (weather == 2) { //slnecno
 						DrawSun(YELLOW, 3);
 					}
 					if (weather == 3) { //dazd
-						DrawRain(DARKGREY, 3);
+						DrawRain(LIGHTGREY, 3);
 					}
 					if (weather == 4) { //hmla
-						DrawFog(DARKGREY, 3);
+						DrawFog(LIGHTGREY, 3);
 					}
 					break;
 				}
@@ -436,45 +430,33 @@ int main(void) {
 			if (first == 1) {
 				//dynamic
 				if (screen == 0) {
-					if (current_s == 0) {
-
-						sprintf(time_string, "%02d:%02d", current_h, current_m);
-						sprintf(seconds_string, ":%02d", current_s);
-
-						DrawDataInBox(time_string, seconds_string, date_string,
-						FONT4, 2, 1, 1, 0, 0, 1, 0, 0);
-					}
 					if (current_s != last_second_val) {
 
-						sprintf(time_string, "%02d:%02d", current_h, current_m);
-						sprintf(seconds_string, ":%02d", current_s);
+						sprintf(time_string, "%02d:%02d", date_buff[0],
+								date_buff[1]);
+						sprintf(seconds_string, ":%02d", date_buff[2]);
+
+						redraw = (current_s == 0) ? 1 : 0;
 
 						DrawDataInBox(time_string, seconds_string, date_string,
-						FONT4, 2, 1, 1, 0, 0, 0, 1, 0);
+						FONT4, 2, 1, 1, 0, 0, redraw, 1, 0);
 
 						last_second_val = current_s;
 					}
-
 				}
 
 				if (screen == 1) {
-					if (current_s == 0) {
-
-						sprintf(time_string, "%02d:%02d", current_h, current_m);
-						sprintf(seconds_string, ":%02d", current_s);
-
-						DrawDataCentered2(time_string, seconds_string,
-								date_string,
-								FONT4, 5, 3, 3, 1, 0, 0);
-					}
 					if (current_s != last_second_val) {
 
-						sprintf(time_string, "%02d:%02d", current_h, current_m);
-						sprintf(seconds_string, ":%02d", current_s);
+						sprintf(time_string, "%02d:%02d", date_buff[0],
+								date_buff[1]);
+						sprintf(seconds_string, ":%02d", date_buff[2]);
+
+						redraw = (current_s == 0) ? 1 : 0;
 
 						DrawDataCentered2(time_string, seconds_string,
 								date_string,
-								FONT4, 5, 3, 3, 0, 1, 0);
+								FONT4, 5, 3, 3, redraw, 1, 0);
 
 						last_second_val = current_s;
 					}
