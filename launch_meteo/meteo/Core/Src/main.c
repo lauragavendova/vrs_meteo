@@ -57,11 +57,11 @@ typedef enum {
 #define SAMPLE_PERIOD_S  60 		// 1 vzorka tlaku za 60 s
 
 // Nastav na 1 ak máš desktop aplikáciu, 0 ak testuješ bez nej
-#define USE_DESKTOP_APP  0
+#define USE_DESKTOP_APP  1
 
 // Nastav na 1 ak chceš inicializovať SENZORY PRED DISPLEJOM (odporúčané)
 // Nastav na 0 ak chceš DISPLEJ PRED SENZORMI s I2C reinicializáciou
-#define SENSORS_BEFORE_DISPLAY  1
+#define SENSORS_BEFORE_DISPLAY  0
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -303,14 +303,6 @@ int main(void) {
 	ILI9341_SetRotation(3);
 	ILI9341_FillScreen(BGCOLOR);
 
-	// Displej môže pokaziť I2C - reinicializuj ho!
-	const char *reinit_msg = "Reinitializing I2C...\r\n";
-	HAL_UART_Transmit(&huart2, (uint8_t*)reinit_msg, strlen(reinit_msg), HAL_MAX_DELAY);
-
-	HAL_I2C_DeInit(&hi2c1);
-	HAL_Delay(50);
-	MX_I2C1_Init();
-	HAL_Delay(100);
 
 	// TERAZ SENZORY
 	hts.hi2c = &hi2c1;
@@ -320,6 +312,8 @@ int main(void) {
 	lps.hi2c = &hi2c1;
 	lps.I2C_Read = I2C_Read;
 	lps.I2C_Write = I2C_Write;
+
+	HAL_Delay(200);
 
 	if (!HTS221_Init(&hts))
 	{
@@ -358,7 +352,7 @@ int main(void) {
 
 	// ***** SPOLOČNÉ PRE OBE VARIANTY *****
 #if USE_DESKTOP_APP
-	HAL_TIM_Base_Start_IT(&htim6);
+	HAL_TIM_Base_Start_IT(&htim16);
 #endif
 
 	const char *ready_msg = "System ready!\r\n\r\n";
@@ -387,7 +381,6 @@ int main(void) {
 		FONT4, 1, 240 - FONT4[2] - 1, GREEN);
 	}
 
-	HAL_Delay(3000);
 	ILI9341_FillScreen(BGCOLOR);
 
 	/* USER CODE END 2 */
@@ -396,9 +389,7 @@ int main(void) {
 	/* USER CODE BEGIN WHILE */
 
 	if (mode == 0) {
-		// *** AUTOMATICKÝ REŽIM (mode 0) - automatické prepínanie obrazoviek ***
 		while (1) {
-			// Čítaj senzory každú sekundu
 			if (HAL_GetTick() - lastSensorRead >= 1000) {
 				lastSensorRead = HAL_GetTick();
 				updateSensorData();
@@ -425,7 +416,6 @@ int main(void) {
 			int year = 1900 + date_buff[5];
 			sprintf(date_string, "%02d.%02d.%04d", date_buff[3], date_buff[4], year);
 
-			// Aktualizuj humidity level text
 			if ((int)display_humidity >= 40 && (int)display_humidity <= 60) {
 				snprintf(string_hum_lvl, sizeof(string_hum_lvl), "COMFORT");
 			} else if ((int)display_humidity < 40) {
@@ -488,8 +478,6 @@ int main(void) {
 						DrawSun(YELLOW, 3);
 					} else if (current_weather == WX_RAIN) {
 						DrawRain(LIGHTGREY, 3);
-					} else if (current_weather == WX_STORM) {
-						DrawRain(LIGHTGREY, 3); // alebo DrawStorm ak máš
 					} else if (current_weather == WX_FOG) {
 						DrawFog(LIGHTGREY, 3);
 					}
@@ -497,7 +485,7 @@ int main(void) {
 				}
 			}
 
-			// Dynamické aktualizácie
+			// dynamic
 			if (screen == 0) {
 				if (current_s != last_second_val) {
 					sprintf(time_string, "%02d:%02d", date_buff[0], date_buff[1]);
@@ -551,7 +539,6 @@ int main(void) {
 	}
 
 	if (mode == 1) {
-		// *** MANUÁLNY REŽIM (mode 1) - prepínanie tlačidlom ***
 		DrawDataCentered_WithOffset("*Press the button to switch screens",
 		FONT4, 1, 240 - FONT4[2] - 1, GREEN);
 
@@ -562,29 +549,13 @@ int main(void) {
 				lastSensorRead = HAL_GetTick();
 				updateSensorData();
 				updateWeatherForecast();
-
-#if !USE_DESKTOP_APP
-				// Ak nemáme desktop app, inkrementuj čas manuálne
-				date_buff[2]++;
-				if (date_buff[2] > 59) {
-					date_buff[2] = 0;
-					date_buff[1]++;
-				}
-				if (date_buff[1] > 59) {
-					date_buff[1] = 0;
-					date_buff[0]++;
-				}
-				if (date_buff[0] > 23) {
-					date_buff[0] = 0;
-				}
-#endif
 			}
 
 			int current_s = date_buff[2];
 			int year = 1900 + date_buff[5];
 			sprintf(date_string, "%02d.%02d.%04d", date_buff[3], date_buff[4], year);
 
-			// Aktualizuj humidity level text
+
 			if ((int)display_humidity >= 40 && (int)display_humidity <= 60) {
 				snprintf(string_hum_lvl, sizeof(string_hum_lvl), "COMFORT");
 			} else if ((int)display_humidity < 40) {
@@ -649,9 +620,8 @@ int main(void) {
 						DrawSun(YELLOW, 3);
 					} else if (current_weather == WX_RAIN) {
 						DrawRain(LIGHTGREY, 3);
-					} else if (current_weather == WX_STORM) {
-						DrawRain(LIGHTGREY, 3);
-					} else if (current_weather == WX_FOG) {
+					}
+					else if (current_weather == WX_FOG) {
 						DrawFog(LIGHTGREY, 3);
 					}
 					break;
@@ -659,7 +629,7 @@ int main(void) {
 			}
 
 			if (first == 1) {
-				// Dynamické aktualizácie
+				// dynamic
 				if (screen == 0) {
 					if (current_s != last_second_val) {
 						sprintf(time_string, "%02d:%02d", date_buff[0], date_buff[1]);
@@ -781,8 +751,6 @@ int USART_ReadTime() {
 		if (status == HAL_OK) {
 			date_buff[i] = rx;
 		} else {
-			// Timeout alebo chyba - nastav default hodnoty
-			// Default: 12:00:00 01.01.2025
 			date_buff[0] = 12; // hodiny
 			date_buff[1] = 0;  // minúty
 			date_buff[2] = 0;  // sekundy
@@ -792,7 +760,7 @@ int USART_ReadTime() {
 
 			const char *timeout_msg = "USART timeout - using default time\r\n";
 			HAL_UART_Transmit(&huart2, (uint8_t*)timeout_msg, strlen(timeout_msg), HAL_MAX_DELAY);
-			return -1; // Vráť error code
+			return -1;
 		}
 	}
 
