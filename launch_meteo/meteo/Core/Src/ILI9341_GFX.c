@@ -340,11 +340,11 @@ void DrawDataCentered2(char *big, char *smaller, char *line2,
 	// stred
 	uint16_t totalWidth1 = widthLarge + widthSmall;
 	uint16_t totalHeight;
-		if (line2[0] == '\0') {
-			totalHeight = (fHeight * fontlarge);
-		} else {
-			totalHeight = (fHeight * fontlarge) + spacing + (fHeight * line2size);
-		}
+	if (line2[0] == '\0') {
+		totalHeight = (fHeight * fontlarge);
+	} else {
+		totalHeight = (fHeight * fontlarge) + spacing + (fHeight * line2size);
+	}
 
 	uint16_t xStart1 = (320 - totalWidth1) / 2;
 	uint16_t xStart2 = (320 - widthLine2) / 2;
@@ -353,14 +353,14 @@ void DrawDataCentered2(char *big, char *smaller, char *line2,
 	if (drawBig) {
 		ILI9341_DrawRectangle(xStart1 - 10, yStart, (fWidth) * fontlarge,
 				(fHeight * fontlarge) - 4 * fontlarge, BGCOLOR);
-		ILI9341_DrawText_Scaled(big, font, xStart1 - 5, yStart, FCOLOR, BGCOLOR, /////
+		ILI9341_DrawText_Scaled(big, font, xStart1 - 2, yStart, FCOLOR, BGCOLOR, /////
 				fontlarge);
 	}
 
 	if (drawSmall) {
 		uint16_t ySmall = yStart + (fHeight * fontlarge)
 				- (fHeight * fontsmall);
-		ILI9341_DrawRectangle(xStart1 + widthLarge - 5, ySmall - 30,
+		ILI9341_DrawRectangle(xStart1 + widthLarge - 2, ySmall - 30,
 				(fWidth) * fontsmall + 30, (fHeight * fontsmall) * 2, BGCOLOR);
 		ILI9341_DrawText_Scaled(smaller, font, xStart1 + widthLarge, ySmall,
 		FCOLOR, BGCOLOR, fontsmall);
@@ -426,7 +426,9 @@ void DrawDataInBox(char *big, char *smaller, char *line2, const uint8_t font[],
 
 	// line1
 	if (drawBig) {
-		ILI9341_DrawText_Scaled(big, font, xStart1-5, yStart, FCOLOR, BGCOLOR, /////
+		ILI9341_DrawRectangle(xStart1 - 10, yStart, (fWidth) * fontlarge,
+						(fHeight * fontlarge) + 0.5 * fontlarge, BGCOLOR);
+		ILI9341_DrawText_Scaled(big, font, xStart1 - 2, yStart, FCOLOR, BGCOLOR, /////
 				fontlarge);
 	}
 
@@ -434,10 +436,10 @@ void DrawDataInBox(char *big, char *smaller, char *line2, const uint8_t font[],
 		uint16_t ySmall = yStart + (fHeight * fontlarge)
 				- (fHeight * fontsmall);
 		ILI9341_DrawRectangle(xStart1 + widthLarge - 2, ySmall - 10,
-						(fWidth) * fontsmall + 10, (fHeight * fontsmall) * 2, BGCOLOR);
+				(fWidth) * fontsmall + 10, (fHeight * fontsmall) * 2, BGCOLOR);
 		ILI9341_DrawText_Scaled(smaller, font, xStart1 + widthLarge, ySmall,
-				FCOLOR,
-				BGCOLOR, fontsmall);
+		FCOLOR,
+		BGCOLOR, fontsmall);
 	}
 
 	// line2
@@ -589,7 +591,7 @@ void DrawCloud(uint16_t color, uint8_t thickness) {
 			ILI9341_DrawPixel(i, Y + 5 + rSide - t, color);
 		}
 	}
-	DrawDataCentered_WithOffset("CLOUDY", FONT4, 3, Y + rMain + 15, DARKGREY);
+	DrawDataCentered_WithOffset("CLOUDY", FONT4, 3, Y + rMain + 15, FCOLOR);
 }
 
 void DrawRain(uint16_t color, uint8_t thickness) {
@@ -675,7 +677,7 @@ void DrawRain(uint16_t color, uint8_t thickness) {
 		}
 	}
 
-	uint16_t rainColor = NAVY;
+	uint16_t rainColor = BLUE;
 	uint8_t rainCount = 5;
 	uint8_t rainLen = 15;
 
@@ -696,7 +698,7 @@ void DrawRain(uint16_t color, uint8_t thickness) {
 		}
 	}
 	DrawDataCentered_WithOffset("RAINY", FONT4, 3, rainY + rainLen + 15,
-	DARKGREY);
+	FCOLOR);
 }
 
 void DrawFog(uint16_t color, uint8_t thickness) {
@@ -720,6 +722,6 @@ void DrawFog(uint16_t color, uint8_t thickness) {
 		ILI9341_DrawHLine((320 - 50) / 2, Y + i + 20, 30, color);
 		ILI9341_DrawHLine((320 - 30) / 2, Y + i + 30, 30, color);
 	}
-	DrawDataCentered_WithOffset("FOGGY", FONT4, 3, Y + 30 + 15, DARKGREY);
+	DrawDataCentered_WithOffset("FOGGY", FONT4, 3, Y + 30 + 15, FCOLOR);
 }
 

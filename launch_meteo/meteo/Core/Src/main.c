@@ -77,7 +77,8 @@ char string_humidity[7];
 char string_hum_lvl[10];
 char string_temp[7];
 
-int8_t mode = 0;
+int8_t mode = 1;
+int8_t redraw = 0;
 uint8_t screen = 0;
 uint32_t change = 0;
 volatile uint8_t btn_pressed = 0;
@@ -120,47 +121,45 @@ static float readPressure_hPa(void)
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void)
-{
+ * @brief  The application entry point.
+ * @retval int
+ */
+int main(void) {
 
-  /* USER CODE BEGIN 1 */
+	/* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
+	/* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+	/* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+	HAL_Init();
 
-  /* USER CODE BEGIN Init */
+	/* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+	/* USER CODE END Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+	/* Configure the system clock */
+	SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
+	/* USER CODE BEGIN SysInit */
 
-  /* USER CODE END SysInit */
+	/* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_DMA_Init();
-  MX_USART2_UART_Init();
-  MX_SPI1_Init();
-  MX_I2C1_Init();
-  MX_TIM7_Init();
-  MX_TIM6_Init();
-  MX_TIM16_Init();
-  /* USER CODE BEGIN 2 */
+	/* Initialize all configured peripherals */
+	MX_GPIO_Init();
+	MX_DMA_Init();
+	MX_USART2_UART_Init();
+	MX_SPI1_Init();
+	MX_I2C1_Init();
+	MX_TIM7_Init();
+	MX_TIM6_Init();
+	MX_TIM16_Init();
+	/* USER CODE BEGIN 2 */
 
-  	HAL_Delay(1000);
+	HAL_Delay(1000);
 	USART_ReadTime();
 	HAL_TIM_Base_Start_IT(&htim16);
-
 
 	ILI9341_Reset();
 	HAL_Delay(10);
@@ -171,7 +170,6 @@ int main(void)
 	ILI9341_FillScreen(BGCOLOR);
 
 	HAL_TIM_Base_Start_IT(&htim6);
-
 
 	float sim_temp = 22.1f;
 	float last_temp = -1.0f;
@@ -184,15 +182,10 @@ int main(void)
 
 	int16_t weather = 2;
 
-	// simulacia casu
-	int base_hours = 14;
-	int base_minutes = 30;
-	int base_seconds = 45;
-
 	int last_second_val = -1;
 	char time_string[10];
 	char seconds_string[5];
-	char date_string[12] = "21.01.2026";
+	char date_string[12];
 
 	DrawDataCentered_WithOffset("Welcome!", FONT4, 2, 65, FCOLOR);
 	DrawDataCentered_WithOffset("Weather station created by:", FONT4, 1, 115,
@@ -210,11 +203,10 @@ int main(void)
 		ILI9341_FillScreen(BGCOLOR);
 
 		while (1) {
-			uint32_t total_s = HAL_GetTick() / 1000;
-			int current_s = (base_seconds + total_s) % 60;
-			int current_m = (base_minutes + (base_seconds + total_s) / 60) % 60;
-			int current_h = (base_hours
-					+ (base_minutes + (base_seconds + total_s) / 60) / 60) % 24;
+			int current_s = date_buff[2];
+			int year = 1900 + date_buff[5];
+			sprintf(date_string, "%02d.%02d.%04d", date_buff[3], date_buff[4],
+					year);
 
 			if (!btn_pressed && (HAL_GetTick() - change >= 5000)) {
 				screen++;
@@ -229,6 +221,9 @@ int main(void)
 
 				switch (screen) {
 				case 0:
+					sprintf(time_string, "%02d:%02d", date_buff[0],
+							date_buff[1]);
+					sprintf(seconds_string, ":%02d", date_buff[2]);
 					ILI9341_DrawHLine(0, 120, 320, FCOLOR);
 					ILI9341_DrawVLine(160, 0, 240, FCOLOR);
 					DrawDataInBox(time_string, seconds_string, date_string,
@@ -245,6 +240,10 @@ int main(void)
 
 					break;
 				case 1:
+
+					sprintf(time_string, "%02d:%02d", date_buff[0],
+							date_buff[1]);
+					sprintf(seconds_string, ":%02d", date_buff[2]);
 					DrawDataCentered2(time_string, seconds_string, date_string,
 					FONT4, 5, 3, 3, 1, 1, 1);
 					break;
@@ -275,16 +274,16 @@ int main(void)
 					break;
 				case 5:
 					if (weather == 1) { //oblacno
-						DrawCloud(DARKGREY, 3);
+						DrawCloud(LIGHTGREY, 3);
 					}
 					if (weather == 2) { //slnecno
 						DrawSun(YELLOW, 3);
 					}
 					if (weather == 3) { //dazd
-						DrawRain(DARKGREY, 3);
+						DrawRain(LIGHTGREY, 3);
 					}
 					if (weather == 4) { //hmla
-						DrawFog(DARKGREY, 3);
+						DrawFog(LIGHTGREY, 3);
 					}
 					break;
 				}
@@ -293,43 +292,32 @@ int main(void)
 
 			//dynamic
 			if (screen == 0) {
-				if (current_s == 0) {
-
-					sprintf(time_string, "%02d:%02d", current_h, current_m);
-					sprintf(seconds_string, ":%02d", current_s);
-
-					DrawDataInBox(time_string, seconds_string, date_string,
-					FONT4, 2, 1, 1, 0, 0, 1, 0, 0);
-				}
 				if (current_s != last_second_val) {
 
-					sprintf(time_string, "%02d:%02d", current_h, current_m);
-					sprintf(seconds_string, ":%02d", current_s);
+					sprintf(time_string, "%02d:%02d", date_buff[0],
+							date_buff[1]);
+					sprintf(seconds_string, ":%02d", date_buff[2]);
+
+					redraw = (current_s == 0) ? 1 : 0;
 
 					DrawDataInBox(time_string, seconds_string, date_string,
-					FONT4, 2, 1, 1, 0, 0, 0, 1, 0);
+					FONT4, 2, 1, 1, 0, 0, redraw, 1, 0);
 
 					last_second_val = current_s;
 				}
-
 			}
 
 			if (screen == 1) {
-				if (current_s == 0) {
-
-					sprintf(time_string, "%02d:%02d", current_h, current_m);
-					sprintf(seconds_string, ":%02d", current_s);
-
-					DrawDataCentered2(time_string, seconds_string, date_string,
-					FONT4, 5, 3, 3, 1, 0, 0);
-				}
 				if (current_s != last_second_val) {
 
-					sprintf(time_string, "%02d:%02d", current_h, current_m);
-					sprintf(seconds_string, ":%02d", current_s);
+					sprintf(time_string, "%02d:%02d", date_buff[0],
+							date_buff[1]);
+					sprintf(seconds_string, ":%02d", date_buff[2]);
+
+					redraw = (current_s == 0) ? 1 : 0;
 
 					DrawDataCentered2(time_string, seconds_string, date_string,
-					FONT4, 5, 3, 3, 0, 1, 0);
+					FONT4, 5, 3, 3, redraw, 1, 0);
 
 					last_second_val = current_s;
 				}
@@ -377,192 +365,8 @@ int main(void)
 				}
 				last_pressure = sim_pressure;
 			}
-
-		}
-}
-
-
-
-
-if (mode == 1) {
-	DrawDataCentered_WithOffset("*Press the button to switch screens",
-			FONT4, 1, 240 - FONT4[2] - 1, GREEN);
-	uint32_t first = 0;
-	while (1) {
-		uint32_t total_s = HAL_GetTick() / 1000;
-		int current_s = (base_seconds + total_s) % 60;
-		int current_m = (base_minutes + (base_seconds + total_s) / 60) % 60;
-		int current_h = (base_hours
-				+ (base_minutes + (base_seconds + total_s) / 60) / 60) % 24;
-		if (btn_pressed) {
-			screen++;
-			if (screen > 5)
-			screen = 0;
-
-			ILI9341_FillScreen(BGCOLOR);
-			last_temp = -1.0f;
-			last_humidity = -1;
-			last_pressure = -1;
-
-			first = 1;
-			btn_pressed = 0;
-			switch (screen) {
-				case 0:
-				ILI9341_DrawHLine(0, 120, 320, FCOLOR);
-				ILI9341_DrawVLine(160, 0, 240, FCOLOR);
-				DrawDataInBox(time_string, seconds_string, date_string,
-						FONT4, 2, 1, 1, 0, 0, 1, 1, 1);
-
-				DrawDataInBox(string_temp, "\177C", "", FONT4, 2, 1, 1, 160,
-						0, 1, 1, 0);
-
-				DrawDataInBox(string_humidity, "%", string_hum_lvl, FONT4,
-						2, 1, 1, 0, 120, 1, 1, 1);
-
-				DrawDataInBox(string_pressure, "hPa", "", FONT4, 2, 1, 1,
-						160, 120, 1, 1, 0);
-
-				break;
-				case 1:
-				DrawDataCentered2(time_string, seconds_string, date_string,
-						FONT4, 5, 3, 3, 1, 1, 1);
-				break;
-				case 2:
-				DrawDataCentered2(string_temp, "\177C", "",
-						FONT4, 5, 3, 0, 1, 1, 0);
-				break;
-
-				case 3:
-				if (sim_humidity >= 40 && sim_humidity <= 60) {
-					snprintf(string_hum_lvl, sizeof(string_hum_lvl),
-							"COMFORT");
-				}
-				if (sim_humidity < 40) {
-					snprintf(string_hum_lvl, sizeof(string_hum_lvl), "DRY");
-				}
-				if (sim_humidity > 60) {
-					snprintf(string_hum_lvl, sizeof(string_hum_lvl),
-							"HUMID");
-				}
-				DrawDataCentered2(string_humidity, "%", string_hum_lvl,
-						FONT4, 5, 3, 3, 1, 1, 1);
-				break;
-				break;
-				case 4:
-				DrawDataCentered2(string_pressure, "hPa", "",
-						FONT4, 5, 3, 0, 1, 1, 0);
-				break;
-				case 5:
-				if (weather == 1) { //oblacno
-					DrawCloud(DARKGREY, 3);
-				}
-				if (weather == 2) { //slnecno
-					DrawSun(YELLOW, 3);
-				}
-				if (weather == 3) { //dazd
-					DrawRain(DARKGREY, 3);
-				}
-				if (weather == 4) { //hmla
-					DrawFog(DARKGREY, 3);
-				}
-				break;
-			}
-
-		}
-
-		if (first == 1) {
-			//dynamic
-			if (screen == 0) {
-				if (current_s == 0) {
-
-					sprintf(time_string, "%02d:%02d", current_h, current_m);
-					sprintf(seconds_string, ":%02d", current_s);
-
-					DrawDataInBox(time_string, seconds_string, date_string,
-							FONT4, 2, 1, 1, 0, 0, 1, 0, 0);
-				}
-				if (current_s != last_second_val) {
-
-					sprintf(time_string, "%02d:%02d", current_h, current_m);
-					sprintf(seconds_string, ":%02d", current_s);
-
-					DrawDataInBox(time_string, seconds_string, date_string,
-							FONT4, 2, 1, 1, 0, 0, 0, 1, 0);
-
-					last_second_val = current_s;
-				}
-
-			}
-
-			if (screen == 1) {
-				if (current_s == 0) {
-
-					sprintf(time_string, "%02d:%02d", current_h, current_m);
-					sprintf(seconds_string, ":%02d", current_s);
-
-					DrawDataCentered2(time_string, seconds_string,
-							date_string,
-							FONT4, 5, 3, 3, 1, 0, 0);
-				}
-				if (current_s != last_second_val) {
-
-					sprintf(time_string, "%02d:%02d", current_h, current_m);
-					sprintf(seconds_string, ":%02d", current_s);
-
-					DrawDataCentered2(time_string, seconds_string,
-							date_string,
-							FONT4, 5, 3, 3, 0, 1, 0);
-
-					last_second_val = current_s;
-				}
-
-			}
-
-			if (sim_temp != last_temp) {
-
-				sprintf(string_temp, "%.1f", sim_temp);
-
-				if (screen == 2) {
-					DrawDataCentered2(string_temp, "\177C", "", FONT4, 5, 3,
-							0, 1, 0, 0);
-				} else if (screen == 0) {
-					DrawDataInBox(string_temp, "\177C", "",
-							FONT4, 2, 1, 1, 160, 0, 1, 0, 0);
-				}
-				last_temp = sim_temp;
-			}
-
-			if (sim_humidity != last_humidity) {
-
-				sprintf(string_humidity, "%d", sim_humidity);
-
-				if (screen == 3) {
-					DrawDataCentered2(string_humidity, "%", string_hum_lvl,
-							FONT4, 5, 3, 3, 1, 0, 0);
-				} else if (screen == 0) {
-					DrawDataInBox(string_humidity, "%", string_hum_lvl,
-							FONT4, 2, 1, 1, 0, 120, 1, 0, 0);
-				}
-				last_humidity = sim_humidity;
-			}
-
-			if (sim_pressure != last_pressure) {
-
-				sprintf(string_pressure, "%d", sim_pressure);
-
-				if (screen == 4) {
-					DrawDataCentered2(string_pressure, "hPa", "", FONT4, 5,
-							3, 0, 1, 0, 0);
-				} else if (screen == 0) {
-					DrawDataInBox(string_pressure, "hPa", "",
-							FONT4, 2, 1, 1, 160, 120, 1, 0, 0);
-				}
-				last_pressure = sim_pressure;
-			}
-
 		}
 	}
-}
 
 hts.hi2c = &hi2c1;
 hts.I2C_Read = I2C_Read;
@@ -625,8 +429,188 @@ while (1) {
 	      HAL_Delay(1000);
 
     /* USER CODE END WHILE */
+	if (mode == 1) {
+		DrawDataCentered_WithOffset("*Press the button to switch screens",
+		FONT4, 1, 240 - FONT4[2] - 1, GREEN);
+		uint32_t first = 0;
+		while (1) {
+			int current_s = date_buff[2];
+			int year = 1900 + date_buff[5];
+			sprintf(date_string, "%02d.%02d.%04d", date_buff[3], date_buff[4],
+					year);
+			if (btn_pressed) {
+				screen++;
+				if (screen > 5)
+					screen = 0;
 
-    /* USER CODE BEGIN 3 */
+				ILI9341_FillScreen(BGCOLOR);
+				last_temp = -1.0f;
+				last_humidity = -1;
+				last_pressure = -1;
+
+				first = 1;
+				btn_pressed = 0;
+				switch (screen) {
+				case 0:
+					sprintf(time_string, "%02d:%02d", date_buff[0],
+							date_buff[1]);
+					sprintf(seconds_string, ":%02d", date_buff[2]);
+					ILI9341_DrawHLine(0, 120, 320, FCOLOR);
+					ILI9341_DrawVLine(160, 0, 240, FCOLOR);
+					DrawDataInBox(time_string, seconds_string, date_string,
+					FONT4, 2, 1, 1, 0, 0, 1, 1, 1);
+
+					DrawDataInBox(string_temp, "\177C", "", FONT4, 2, 1, 1, 160,
+							0, 1, 1, 0);
+
+					DrawDataInBox(string_humidity, "%", string_hum_lvl, FONT4,
+							2, 1, 1, 0, 120, 1, 1, 1);
+
+					DrawDataInBox(string_pressure, "hPa", "", FONT4, 2, 1, 1,
+							160, 120, 1, 1, 0);
+
+					break;
+				case 1:
+
+					sprintf(time_string, "%02d:%02d", date_buff[0],
+							date_buff[1]);
+					sprintf(seconds_string, ":%02d", date_buff[2]);
+					DrawDataCentered2(time_string, seconds_string, date_string,
+					FONT4, 5, 3, 3, 1, 1, 1);
+					break;
+				case 2:
+					DrawDataCentered2(string_temp, "\177C", "",
+					FONT4, 5, 3, 0, 1, 1, 0);
+					break;
+
+				case 3:
+					if (sim_humidity >= 40 && sim_humidity <= 60) {
+						snprintf(string_hum_lvl, sizeof(string_hum_lvl),
+								"COMFORT");
+					}
+					if (sim_humidity < 40) {
+						snprintf(string_hum_lvl, sizeof(string_hum_lvl), "DRY");
+					}
+					if (sim_humidity > 60) {
+						snprintf(string_hum_lvl, sizeof(string_hum_lvl),
+								"HUMID");
+					}
+					DrawDataCentered2(string_humidity, "%", string_hum_lvl,
+					FONT4, 5, 3, 3, 1, 1, 1);
+					break;
+					break;
+				case 4:
+					DrawDataCentered2(string_pressure, "hPa", "",
+					FONT4, 5, 3, 0, 1, 1, 0);
+					break;
+				case 5:
+					if (weather == 1) { //oblacno
+						DrawCloud(LIGHTGREY, 3);
+					}
+					if (weather == 2) { //slnecno
+						DrawSun(YELLOW, 3);
+					}
+					if (weather == 3) { //dazd
+						DrawRain(LIGHTGREY, 3);
+					}
+					if (weather == 4) { //hmla
+						DrawFog(LIGHTGREY, 3);
+					}
+					break;
+				}
+
+			}
+
+			if (first == 1) {
+				//dynamic
+				if (screen == 0) {
+					if (current_s != last_second_val) {
+
+						sprintf(time_string, "%02d:%02d", date_buff[0],
+								date_buff[1]);
+						sprintf(seconds_string, ":%02d", date_buff[2]);
+
+						redraw = (current_s == 0) ? 1 : 0;
+
+						DrawDataInBox(time_string, seconds_string, date_string,
+						FONT4, 2, 1, 1, 0, 0, redraw, 1, 0);
+
+						last_second_val = current_s;
+					}
+				}
+
+				if (screen == 1) {
+					if (current_s != last_second_val) {
+
+						sprintf(time_string, "%02d:%02d", date_buff[0],
+								date_buff[1]);
+						sprintf(seconds_string, ":%02d", date_buff[2]);
+
+						redraw = (current_s == 0) ? 1 : 0;
+
+						DrawDataCentered2(time_string, seconds_string,
+								date_string,
+								FONT4, 5, 3, 3, redraw, 1, 0);
+
+						last_second_val = current_s;
+					}
+
+				}
+
+				if (sim_temp != last_temp) {
+
+					sprintf(string_temp, "%.1f", sim_temp);
+
+					if (screen == 2) {
+						DrawDataCentered2(string_temp, "\177C", "", FONT4, 5, 3,
+								0, 1, 0, 0);
+					} else if (screen == 0) {
+						DrawDataInBox(string_temp, "\177C", "",
+						FONT4, 2, 1, 1, 160, 0, 1, 0, 0);
+					}
+					last_temp = sim_temp;
+				}
+
+				if (sim_humidity != last_humidity) {
+
+					sprintf(string_humidity, "%d", sim_humidity);
+
+					if (screen == 3) {
+						DrawDataCentered2(string_humidity, "%", string_hum_lvl,
+						FONT4, 5, 3, 3, 1, 0, 0);
+					} else if (screen == 0) {
+						DrawDataInBox(string_humidity, "%", string_hum_lvl,
+						FONT4, 2, 1, 1, 0, 120, 1, 0, 0);
+					}
+					last_humidity = sim_humidity;
+				}
+
+				if (sim_pressure != last_pressure) {
+
+					sprintf(string_pressure, "%d", sim_pressure);
+
+					if (screen == 4) {
+						DrawDataCentered2(string_pressure, "hPa", "", FONT4, 5,
+								3, 0, 1, 0, 0);
+					} else if (screen == 0) {
+						DrawDataInBox(string_pressure, "hPa", "",
+						FONT4, 2, 1, 1, 160, 120, 1, 0, 0);
+					}
+					last_pressure = sim_pressure;
+				}
+
+			}
+		}
+	}
+
+	/* USER CODE END 2 */
+
+	/* Infinite loop */
+	/* USER CODE BEGIN WHILE */
+	while (1) {
+		/* USER CODE END WHILE */
+
+		/* USER CODE BEGIN 3 */
 //if (mode == 0) {
 //	  if (screen_status) {
 //		  if (screen_index >= 3) {
@@ -663,56 +647,52 @@ while (1) {
 //		screen_index++;
 //	}
 //}
-	/*HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-	 HAL_Delay(500);
-	 HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-	 HAL_Delay(500);*/
+		/*HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+		 HAL_Delay(500);
+		 HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+		 HAL_Delay(500);*/
 
-}
-  /* USER CODE END 3 */
+	}
+	/* USER CODE END 3 */
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
-void SystemClock_Config(void)
-{
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
+ * @brief System Clock Configuration
+ * @retval None
+ */
+void SystemClock_Config(void) {
+	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+	RCC_PeriphCLKInitTypeDef PeriphClkInit = { 0 };
 
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	/** Initializes the RCC Oscillators according to the specified parameters
+	 * in the RCC_OscInitTypeDef structure.
+	 */
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+		Error_Handler();
+	}
 
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+	/** Initializes the CPU, AHB and APB buses clocks
+	 */
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_I2C1;
-  PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_HSI;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK) {
+		Error_Handler();
+	}
+	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_I2C1;
+	PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_HSI;
+	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
+		Error_Handler();
+	}
 }
 
 /* USER CODE BEGIN 4 */
@@ -724,41 +704,40 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 }
 
 // odošleme žiadosť na dektop apku pomocou USART portu a čakáme na odpoveď
-int USART_ReadTime(){
-  uint8_t msg[] = "get\0";
+int USART_ReadTime() {
+	uint8_t msg[] = "get\0";
 
-  HAL_UART_Transmit(&huart2, msg, sizeof(msg) - 1, HAL_MAX_DELAY);
-  uint8_t rx;
+	HAL_UART_Transmit(&huart2, msg, sizeof(msg) - 1, HAL_MAX_DELAY);
+	uint8_t rx;
 
-  for(int i = 0; i < 6; i++){
-    HAL_UART_Receive(&huart2, &rx, 1, HAL_MAX_DELAY);
-    date_buff[i] = rx;
-  }
-  char buff[20];
-  	uint16_t year = 1900;
-  	year += date_buff[5];
-	sprintf(buff, "%02d:%02d:%02d %02d.%02d.%04d", date_buff[0],date_buff[1],date_buff[2],date_buff[3],date_buff[4],year);
+	for (int i = 0; i < 6; i++) {
+		HAL_UART_Receive(&huart2, &rx, 1, HAL_MAX_DELAY);
+		date_buff[i] = rx;
+	}
+	char buff[20];
+	uint16_t year = 1900;
+	year += date_buff[5];
+	sprintf(buff, "%02d:%02d:%02d %02d.%02d.%04d", date_buff[0], date_buff[1],
+			date_buff[2], date_buff[3], date_buff[4], year);
 	HAL_UART_Transmit(&huart2, buff, sizeof(buff) - 1, HAL_MAX_DELAY);
 
-
-  return 0;
+	return 0;
 }
 
 // time increase
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	if(htim == &htim16){
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	if (htim == &htim16) {
 		//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-
 
 		date_buff[2]++;
 		date_changemask |= 0x8;
-		if(date_buff[2] > 59){
+		if (date_buff[2] > 59) {
 			date_buff[2] = 0;
 			date_buff[1]++;
 			date_changemask |= 0x10;
 		}
 
-		if(date_buff[1] > 59){
+		if (date_buff[1] > 59) {
 			date_buff[1] = 0;
 			date_buff[0]++;
 			date_changemask |= 0x20;
@@ -768,7 +747,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		uint16_t year = 1900;
 		year += date_buff[5];
 
-		sprintf(buff, "%02d:%02d:%02d %02d.%02d.%04d", date_buff[0],date_buff[1],date_buff[2],date_buff[3],date_buff[4],year);
+		sprintf(buff, "%02d:%02d:%02d %02d.%02d.%04d", date_buff[0],
+				date_buff[1], date_buff[2], date_buff[3], date_buff[4], year);
 		HAL_UART_Transmit(&huart2, buff, sizeof(buff) - 1, HAL_MAX_DELAY);
 	}
 }
@@ -822,17 +802,16 @@ static WeatherFlag simpleForecast(float p_hPa, float rh_percent, float trend_hPa
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
-void Error_Handler(void)
-{
-  /* USER CODE BEGIN Error_Handler_Debug */
-/* User can add his own implementation to report the HAL error return state */
-__disable_irq();
-while (1) {
-}
-  /* USER CODE END Error_Handler_Debug */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
+void Error_Handler(void) {
+	/* USER CODE BEGIN Error_Handler_Debug */
+	/* User can add his own implementation to report the HAL error return state */
+	__disable_irq();
+	while (1) {
+	}
+	/* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
