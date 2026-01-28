@@ -25,10 +25,15 @@
 #include "usart.h"
 #include "gpio.h"
 #include <stdio.h>
+#include <stdbool.h>
 #include <math.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "hts221.h"
+#include "lps25hb.h"
+#include <stdio.h>
+#include <string.h>
 #include "text_function.h"
 #include "stm32f3xx_hal.h"
 #include "ILI9341_STM32_Driver.h"
@@ -37,12 +42,19 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+typedef enum {
+  WX_CLOUDY = 1,
+  WX_SUNNY  = 2,
+  WX_RAIN   = 3,
+  WX_STORM  = 4,
+  WX_FOG    = 5
+} WeatherFlag;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define PRESS_BUF_SIZE   10         // 10 vzoriek
+#define SAMPLE_PERIOD_S  60 		// 1 vzorka tlaku za 60 s
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -73,17 +85,37 @@ volatile uint8_t btn_pressed = 0;
 char string_buf[7];
 uint8_t date_buff[6];
 uint8_t date_changemask = 0;
+
+// SEBO
+HTS221_t hts;
+LPS22HB_t lps;
+
+// float temperature, humidity, pressure_hPa;
+
+static float   pressBuf[PRESS_BUF_SIZE];
+static uint8_t pressIdx = 0;
+static bool    pressFull = false;
+static uint32_t lastSampleTick = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 int USART_ReadTime();
+static float readPressure_hPa(void);
+static float pressureTrend_hPa_per_hr(void);
+static WeatherFlag simpleForecast(float p_hPa, float rh_percent, float trend_hPa_hr, float tempC);
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+static float readPressure_hPa(void)
+{
+    float pressure = LPS22_ReadPressure(&lps);   // pravdepodobne mmHg u teba
+    return pressure;
+}
 
 /* USER CODE END 0 */
 
@@ -532,11 +564,66 @@ if (mode == 1) {
 	}
 }
 
+hts.hi2c = &hi2c1;
+hts.I2C_Read = I2C_Read;
+hts.I2C_Write = I2C_Write;
+
+lps.hi2c = &hi2c1;
+lps.I2C_Read = I2C_Read;
+lps.I2C_Write = I2C_Write;
+
+if (!HTS221_Init(&hts))
+{
+    const char *error = "HTS221 init failed\r\n";
+    HAL_UART_Transmit(&huart2, (uint8_t*)error, strlen(error), HAL_MAX_DELAY);
+}
+
+if (!LPS22_Init(&lps))
+{
+    const char *error = "LPS init failed\r\n";
+    HAL_UART_Transmit(&huart2, (uint8_t*)error, strlen(error), HAL_MAX_DELAY);
+}
+
+HAL_Delay(200);
+
+// Referenčný tlak pri štarte (v hPa)
+float referencePressure = readPressure_hPa();
+printf("Referencny tlak pri starte: %.2f hPa\r\n", referencePressure);
+
+lastSampleTick = HAL_GetTick();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 while (1) {
+
+	temperature = HTS221_ReadTemperature(&hts);
+	      humidity    = HTS221_ReadHumidity(&hts);
+	      pressure_hPa = readPressure_hPa();
+
+	      // Log každú sekundu: T, RH, p
+	      printf("%.1f, %.0f, %.1f\r\n", temperature, humidity, pressure_hPa);
+
+	      // Raz za SAMPLE_PERIOD_S urob vzorku tlaku do buffra a (keď je buffer plný) pošli WX flag
+	      if (HAL_GetTick() - lastSampleTick >= (SAMPLE_PERIOD_S * 1000UL))
+	      {
+	          lastSampleTick = HAL_GetTick();
+
+	          pressBuf[pressIdx] = pressure_hPa;
+	          pressIdx = (pressIdx + 1) % PRESS_BUF_SIZE;
+
+
+	              float trend = pressureTrend_hPa_per_hr();
+	              WeatherFlag wx = simpleForecast(pressure_hPa, humidity, trend, temperature);
+
+	              // WX je flag predpovede
+	              printf("WX=%d, trend=%.2f hPa/h\r\n", (int)wx, trend);
+
+	      }
+
+	      HAL_Delay(1000);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -684,6 +771,52 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		sprintf(buff, "%02d:%02d:%02d %02d.%02d.%04d", date_buff[0],date_buff[1],date_buff[2],date_buff[3],date_buff[4],year);
 		HAL_UART_Transmit(&huart2, buff, sizeof(buff) - 1, HAL_MAX_DELAY);
 	}
+}
+
+// SEBO
+
+int _write(int file, char *ptr, int len)
+{
+    HAL_UART_Transmit(&huart2, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+    return len;
+}
+
+// Trend tlaku v hPa/h, počítaný cez celé okno buffra (napr. ~10 min)
+static float pressureTrend_hPa_per_hr(void)
+{
+    if (!pressFull) return 0.0f;
+
+    // newest = posledne zapisana vzorka
+    uint8_t newest = (pressIdx + PRESS_BUF_SIZE - 1) % PRESS_BUF_SIZE;
+    // oldest = pressIdx (keď je buffer full, pressIdx ukazuje na najstaršiu vzorku)
+    uint8_t oldest = pressIdx;
+
+    float p_new = pressBuf[newest];
+    float p_old = pressBuf[oldest];
+
+    float hours = (PRESS_BUF_SIZE * SAMPLE_PERIOD_S) / 3600.0f;
+    if (hours <= 0.0f) return 0.0f;
+
+    return (p_new - p_old) / hours;
+}
+
+static WeatherFlag simpleForecast(float p_hPa, float rh_percent, float trend_hPa_hr, float tempC)
+{
+    // 1) Búrka: veľmi rýchly pokles tlaku
+    if (trend_hPa_hr < -6.0f) return WX_STORM;
+
+    // 2) Dážď: tlak klesá + vlhkosť je vyššia
+    if (trend_hPa_hr < -3.0f && rh_percent > 70.0f) return WX_RAIN;
+
+    // 3) Hmla: veľmi vysoká vlhkosť + chladno + tlak takmer stabilný
+    if (rh_percent > 92.0f && tempC < 8.0f && fabsf(trend_hPa_hr) < 1.0f) return WX_FOG;
+
+    // 4) Slnečno: tlak rastie, alebo tlak je vysoký a podmienky sú stabilné
+    if (trend_hPa_hr > 2.0f) return WX_SUNNY;
+    if (p_hPa > 1018.0f && trend_hPa_hr > -1.0f && rh_percent < 75.0f) return WX_SUNNY;
+
+    // 5) Inak zamračené
+    return WX_CLOUDY;
 }
 
 /* USER CODE END 4 */

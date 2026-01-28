@@ -170,4 +170,18 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
 
 /* USER CODE BEGIN 1 */
 
+HAL_StatusTypeDef I2C_Read(I2C_HandleTypeDef *hi2c, uint16_t devAddr,
+                                uint8_t regAddr, uint8_t *pData, uint16_t size)
+{
+    return HAL_I2C_Mem_Read(hi2c, devAddr, regAddr, I2C_MEMADD_SIZE_8BIT,
+                            pData, size, HAL_MAX_DELAY);
+}
+
+HAL_StatusTypeDef I2C_Write(I2C_HandleTypeDef *hi2c, uint16_t devAddr,
+                                 uint8_t regAddr, uint8_t *pData, uint16_t size)
+{
+    return HAL_I2C_Mem_Write(hi2c, devAddr, regAddr, I2C_MEMADD_SIZE_8BIT,
+                             pData, size, HAL_MAX_DELAY);
+}
+
 /* USER CODE END 1 */
