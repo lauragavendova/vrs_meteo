@@ -57,11 +57,11 @@ typedef enum {
 #define SAMPLE_PERIOD_S  60 		// 1 vzorka tlaku za 60 s
 
 // Nastav na 1 ak máš desktop aplikáciu, 0 ak testuješ bez nej
-#define USE_DESKTOP_APP  1
+#define USE_DESKTOP_APP  0
 
 // Nastav na 1 ak chceš inicializovať SENZORY PRED DISPLEJOM (odporúčané)
 // Nastav na 0 ak chceš DISPLEJ PRED SENZORMI s I2C reinicializáciou
-#define SENSORS_BEFORE_DISPLAY  0
+#define SENSORS_BEFORE_DISPLAY  1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
