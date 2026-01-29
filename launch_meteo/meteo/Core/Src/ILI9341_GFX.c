@@ -506,7 +506,7 @@ void DrawSun(uint16_t color, uint8_t thickness) {
 		}
 	}
 	DrawDataCentered_WithOffset("SUNNY", FONT4, 3, Y + radius + len + 15,
-	WHITE);
+	FCOLOR);
 }
 
 void DrawCloud(uint16_t color, uint8_t thickness) {

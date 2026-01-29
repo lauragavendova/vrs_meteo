@@ -35,6 +35,7 @@
 #include "stm32f3xx_hal.h"
 #include "ILI9341_STM32_Driver.h"
 #include "ILI9341_GFX.h"
+#include <math.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -284,7 +285,7 @@ int main(void) {
 	int last_second_val = -1;
 	char time_string[10];
 	char seconds_string[5];
-	char date_string[12];
+	char date_string[15];
 
 	float last_temp = -1.0f;
 	int16_t last_humidity = -1;
@@ -486,9 +487,7 @@ int main(void) {
 					screen = 0;
 
 				ILI9341_FillScreen(BGCOLOR);
-				last_temp = -1.0f;
-				last_humidity = -1;
-				last_pressure = -1;
+
 
 				first = 1;
 				btn_pressed = 0;
@@ -605,9 +604,13 @@ int main(void) {
 				if (display_temp != last_temp) {
 					sprintf(string_temp, "%.1f", display_temp);
 					if (screen == 2) {
+						ILI9341_DrawFilledRectangleCoord(10, 60, 280, 180,
+						BGCOLOR);
 						DrawDataCentered2(string_temp, "\177C", "", FONT4, 5, 3,
 								0, 1, 1, 0);
 					} else if (screen == 0) {
+						ILI9341_DrawFilledRectangleCoord(170, 30, 310, 90,
+						BGCOLOR);
 						DrawDataInBox(string_temp, "\177C", "", FONT4, 2, 1, 1,
 								160, 0, 1, 1, 0);
 					}
@@ -615,11 +618,25 @@ int main(void) {
 				}
 
 				if ((int) display_humidity != last_humidity) {
+					if ((int) display_humidity >= 40
+							&& (int) display_humidity <= 60) {
+						snprintf(string_hum_lvl, sizeof(string_hum_lvl),
+								"COMFORT");
+					} else if ((int) display_humidity < 40) {
+						snprintf(string_hum_lvl, sizeof(string_hum_lvl), "DRY");
+					} else {
+						snprintf(string_hum_lvl, sizeof(string_hum_lvl),
+								"HUMID");
+					}
 					sprintf(string_humidity, "%.0f", display_humidity);
 					if (screen == 3) {
+						ILI9341_DrawFilledRectangleCoord(80, 20, 240, 220,
+						BGCOLOR);
 						DrawDataCentered2(string_humidity, "%", string_hum_lvl,
-						FONT4, 5, 3, 3, 1, 1, 0);
+						FONT4, 5, 3, 3, 1, 1, 1);
 					} else if (screen == 0) {
+						ILI9341_DrawFilledRectangleCoord(10, 130, 150, 230,
+												BGCOLOR);
 						DrawDataInBox(string_humidity, "%", string_hum_lvl,
 						FONT4, 2, 1, 1, 0, 120, 1, 1, 1);
 					}
@@ -629,9 +646,13 @@ int main(void) {
 				if ((int) display_pressure != last_pressure) {
 					sprintf(string_pressure, "%.0f", display_pressure);
 					if (screen == 4) {
+						ILI9341_DrawFilledRectangleCoord(20, 60, 300, 180,
+						BGCOLOR);
 						DrawDataCentered2(string_pressure, "hPa", "", FONT4, 5,
 								3, 0, 1, 1, 0);
 					} else if (screen == 0) {
+						ILI9341_DrawFilledRectangleCoord(170, 150, 310, 210,
+												BGCOLOR);
 						DrawDataInBox(string_pressure, "hPa", "", FONT4, 2, 1,
 								1, 160, 120, 1, 1, 0);
 					}
@@ -705,7 +726,7 @@ int USART_ReadTime() {
 		HAL_UART_Receive(&huart2, &rx, 1, HAL_MAX_DELAY);
 		date_buff[i] = rx;
 	}
-	char buff[20];
+	char buff[30];
 	uint16_t year = 1900;
 	year += date_buff[5];
 	sprintf(buff, "%02d:%02d:%02d %02d.%02d.%04d", date_buff[0], date_buff[1],
@@ -732,7 +753,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			date_changemask |= 0x20;
 		}
 
-		char buff[20];
+		char buff[30];
 		uint16_t year = 1900;
 		year += date_buff[5];
 
