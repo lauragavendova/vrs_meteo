@@ -287,11 +287,11 @@ void TIM6_DAC1_IRQHandler(void)
   	  tick_counter++;
 
   	  if (led_status) {
-  		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+  		//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
   		led_status = 0;
   	  }
   	  else {
-  		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+  		//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
   		led_status = 1;
   	  }
   	  if (tick_counter > 4) {

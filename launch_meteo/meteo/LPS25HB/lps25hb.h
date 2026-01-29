@@ -6,7 +6,7 @@
 
 #define LPS22_ADDR          (0x5D << 1)
 #define LPS22_WHO_AM_I_REG  0x0F
-#define LPS22_WHO_AM_I_VAL  0xB1
+#define LPS22_WHO_AM_I_VAL  0xBD
 #define LPS22_CTRL_REG1     0x10
 #define LPS22_PRESS_OUT_XL  0x28
 #define LPS22_ADDR_DEFAULT   (0x5D << 1)

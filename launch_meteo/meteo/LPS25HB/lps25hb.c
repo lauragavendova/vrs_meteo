@@ -5,7 +5,7 @@
 uint8_t LPS22_Init(LPS22HB_t *dev)
 {
     uint8_t whoami = 0;
-    dev->I2C_Read(dev->hi2c, LPS22_ADDR, LPS22_WHO_AM_I_REG, &whoami, 1);
+    HAL_I2C_Mem_Read(dev->hi2c, LPS22_ADDR, LPS22_WHO_AM_I_REG, I2C_MEMADD_SIZE_8BIT, &whoami, 1, 100);
 
     if (whoami != LPS22_WHO_AM_I_VAL) return 0;
 
