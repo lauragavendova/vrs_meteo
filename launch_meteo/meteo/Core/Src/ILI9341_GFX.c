@@ -351,7 +351,7 @@ void DrawDataCentered2(char *big, char *smaller, char *line2,
 	uint16_t yStart = (240 - totalHeight) / 2;
 
 	if (drawBig) {
-		ILI9341_DrawRectangle(xStart1 - 10, yStart, (fWidth) * fontlarge,
+		ILI9341_DrawRectangle(xStart1 - 10, yStart, (fWidth) * fontlarge/2,
 				(fHeight * fontlarge) - 4 * fontlarge, BGCOLOR);
 		ILI9341_DrawText_Scaled(big, font, xStart1 - 2, yStart, FCOLOR, BGCOLOR, /////
 				fontlarge);

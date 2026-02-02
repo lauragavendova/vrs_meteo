@@ -198,20 +198,20 @@ int main(void) {
 	MX_TIM16_Init();
 	/* USER CODE BEGIN 2 */
 
-	uint8_t manual_id = 0;
-	HAL_I2C_Mem_Read(&hi2c1, (0x5F << 1), 0x0F, 1, &manual_id, 1, 100);
-	printf("Manualny test: 0x%02X\r\n", manual_id);
-
-	uint8_t id_test = 0;
-	if (HAL_I2C_Mem_Read(&hi2c1, (0x5C << 1), 0x0F, 1, &id_test, 1, 100)
-			== HAL_OK) {
-		printf("LPS najdeny na adrese 0xB8! ID: 0x%02X\r\n", id_test);
-	} else if (HAL_I2C_Mem_Read(&hi2c1, (0x5D << 1), 0x0F, 1, &id_test, 1, 100)
-			== HAL_OK) {
-		printf("LPS najdeny na adrese 0xBA! ID: 0x%02X\r\n", id_test);
-	} else {
-		printf("LPS nereaguje na ziadnej znamej adrese.\r\n");
-	}
+//	uint8_t manual_id = 0;
+//	HAL_I2C_Mem_Read(&hi2c1, (0x5F << 1), 0x0F, 1, &manual_id, 1, 100);
+//	printf("Manualny test: 0x%02X\r\n", manual_id);
+//
+//	uint8_t id_test = 0;
+//	if (HAL_I2C_Mem_Read(&hi2c1, (0x5C << 1), 0x0F, 1, &id_test, 1, 100)
+//			== HAL_OK) {
+//		printf("LPS najdeny na adrese 0xB8! ID: 0x%02X\r\n", id_test);
+//	} else if (HAL_I2C_Mem_Read(&hi2c1, (0x5D << 1), 0x0F, 1, &id_test, 1, 100)
+//			== HAL_OK) {
+//		printf("LPS najdeny na adrese 0xBA! ID: 0x%02X\r\n", id_test);
+//	} else {
+//		printf("LPS nereaguje na ziadnej znamej adrese.\r\n");
+//	}
 
 	hts.hi2c = &hi2c1;
 	hts.I2C_Read = I2C_Read;
@@ -252,6 +252,7 @@ int main(void) {
 	ILI9341_Init();
 	ILI9341_SetRotation(3);
 	ILI9341_FillScreen(BGCOLOR);
+	HAL_Delay(1000);
 
 	//TU VYPISE FAIL AJ NAPRIEK PRVOTNEMU OK (AK SU ZAKOMENTOVANE VYSSIE SPOMENUTE TRI RIADKY, VYPISE OK, NO PO CASE ZNOVA ZACNU SENZORY VRACAT HLUPOSTI)
 	if (HTS221_Init(&hts)) {
@@ -287,9 +288,12 @@ int main(void) {
 	char seconds_string[5];
 	char date_string[15];
 
-	float last_temp = -1.0f;
-	int16_t last_humidity = -1;
-	int16_t last_pressure = -1;
+	float last_temp = display_temp;
+	int16_t last_humidity = (int) display_humidity;
+	int16_t last_pressure = (int) display_pressure;
+//	float last_temp = -1.0f;
+//		int16_t last_humidity = -1;
+//		int16_t last_pressure = -1;
 
 	DrawDataCentered_WithOffset("Welcome!", FONT4, 2, 65, FCOLOR);
 	DrawDataCentered_WithOffset("Weather station created by:", FONT4, 1, 115,
@@ -470,7 +474,7 @@ int main(void) {
 
 		uint32_t first = 0;
 		while (1) {
-			if (HAL_GetTick() - lastSensorRead >= 1000) {
+			if (HAL_GetTick() - lastSensorRead >= 2000) {
 				lastSensorRead = HAL_GetTick();
 				updateSensorData();
 				updateWeatherForecast();
@@ -487,7 +491,6 @@ int main(void) {
 					screen = 0;
 
 				ILI9341_FillScreen(BGCOLOR);
-
 
 				first = 1;
 				btn_pressed = 0;
@@ -604,7 +607,7 @@ int main(void) {
 				if (display_temp != last_temp) {
 					sprintf(string_temp, "%.1f", display_temp);
 					if (screen == 2) {
-						ILI9341_DrawFilledRectangleCoord(10, 60, 280, 180,
+						ILI9341_DrawFilledRectangleCoord(0, 60, 320, 180,
 						BGCOLOR);
 						DrawDataCentered2(string_temp, "\177C", "", FONT4, 5, 3,
 								0, 1, 1, 0);
@@ -616,8 +619,9 @@ int main(void) {
 					}
 					last_temp = display_temp;
 				}
-
+				static char last_hum_lvl[7] = "";
 				if ((int) display_humidity != last_humidity) {
+					bool change = 0;
 					if ((int) display_humidity >= 40
 							&& (int) display_humidity <= 60) {
 						snprintf(string_hum_lvl, sizeof(string_hum_lvl),
@@ -628,17 +632,35 @@ int main(void) {
 						snprintf(string_hum_lvl, sizeof(string_hum_lvl),
 								"HUMID");
 					}
+					if (strcmp(string_hum_lvl, last_hum_lvl) != 0) {
+						change = 1;
+						// Aktualizujeme "pamäť" pre nápis
+						strncpy(last_hum_lvl, string_hum_lvl,
+								sizeof(last_hum_lvl));
+					}
 					sprintf(string_humidity, "%.0f", display_humidity);
 					if (screen == 3) {
-						ILI9341_DrawFilledRectangleCoord(80, 20, 240, 220,
-						BGCOLOR);
+						if (change == 1) {
+							ILI9341_DrawFilledRectangleCoord(80, 20, 240, 220,
+							BGCOLOR);
+						} else {
+							ILI9341_DrawFilledRectangleCoord(80, 20, 240, 130,
+							BGCOLOR);
+						}
 						DrawDataCentered2(string_humidity, "%", string_hum_lvl,
-						FONT4, 5, 3, 3, 1, 1, 1);
+						FONT4, 5, 3, 3, 1, 1, change);
+						change = 0;
 					} else if (screen == 0) {
-						ILI9341_DrawFilledRectangleCoord(10, 130, 150, 230,
-												BGCOLOR);
+						if (change == 1) {
+							ILI9341_DrawFilledRectangleCoord(10, 130, 150, 230,
+							BGCOLOR);
+						} else {
+							ILI9341_DrawFilledRectangleCoord(10, 130, 150, 185,
+							BGCOLOR);
+						}
+
 						DrawDataInBox(string_humidity, "%", string_hum_lvl,
-						FONT4, 2, 1, 1, 0, 120, 1, 1, 1);
+						FONT4, 2, 1, 1, 0, 120, 1, 1, change);
 					}
 					last_humidity = (int) display_humidity;
 				}
@@ -650,9 +672,10 @@ int main(void) {
 						BGCOLOR);
 						DrawDataCentered2(string_pressure, "hPa", "", FONT4, 5,
 								3, 0, 1, 1, 0);
+
 					} else if (screen == 0) {
 						ILI9341_DrawFilledRectangleCoord(170, 150, 310, 210,
-												BGCOLOR);
+						BGCOLOR);
 						DrawDataInBox(string_pressure, "hPa", "", FONT4, 2, 1,
 								1, 160, 120, 1, 1, 0);
 					}
