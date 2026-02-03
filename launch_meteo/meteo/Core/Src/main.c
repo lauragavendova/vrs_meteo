@@ -641,10 +641,10 @@ int main(void)
 					sprintf(string_humidity, "%.0f", display_humidity);
 					if (screen == 3) {
 						if (change == 1) {
-							ILI9341_DrawFilledRectangleCoord(80, 20, 240, 220,
+							ILI9341_DrawFilledRectangleCoord(10, 20, 300, 220,
 							BGCOLOR);
 						} else {
-							ILI9341_DrawFilledRectangleCoord(80, 20, 240, 130,
+							ILI9341_DrawFilledRectangleCoord(10, 20, 300, 130,
 							BGCOLOR);
 						}
 						DrawDataCentered2(string_humidity, "%", string_hum_lvl,
